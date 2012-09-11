@@ -1,0 +1,17 @@
+<configuration>
+	<property name="CONSOLEPATTERN" value="%7r %7.-7thread %-5level %-30logger{30}: %msg%n"/>
+	<property name="FILEPATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS}|%-7thread|%-5level|%-40logger|%msg%n"/>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>${CONSOLEPATTERN}</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="shallowgreen" level="DEBUG"/>
+
+	<root level="DEBUG">
+		<!--appender-ref ref="FILE"/-->
+		<appender-ref ref="STDOUT"/>
+	</root>
+</configuration>
