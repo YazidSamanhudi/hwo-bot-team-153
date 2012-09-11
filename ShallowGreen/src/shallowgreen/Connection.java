@@ -104,6 +104,7 @@ public class Connection implements Runnable {
 	}
 
 	private String read() throws IOException {
+//		log.debug("BufferedReader br.ready(): {}", br.ready() );
 		String s=br.readLine();
 		log.debug("< {}",s);
 		return s;
