@@ -1,59 +1,31 @@
 package shallowgreen.game;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import shallowgreen.Game;
 import shallowgreen.message.ChangeDirMessage;
-import shallowgreen.message.GameIsOnMessage;
-import shallowgreen.message.GameIsOverMessage;
-import shallowgreen.message.JoinedMessage;
-import shallowgreen.message.Message;
 import shallowgreen.model.Player;
 import shallowgreen.model.Update;
 
+/**
+ * Runs after the ball Y mindlessly, with full speed. And doesn't know what to
+ * do with the ball if it ever catches it.
+ */
 public class DogGame extends Game {
 	private static final Logger log=LoggerFactory.getLogger(DogGame.class);
 
 	private double speed;
+	private double lastPaddleY;
 
 	@Override
-	public void handleMessage(Message message) {
-		switch(message.getMessageType()) {
-			case CHANGE_DIR:
-				log.error("Server should not send change dir messages ({})",message);
-				break;
-			case ERROR:
-				log.error("We did something wrong: {}",message);
-				break;
-			case GAME_IS_ON:
-				update(((GameIsOnMessage)message).getUpdate());
-				break;
-			case GAME_IS_OVER:
-				log.info("Game over, {} won",((GameIsOverMessage)message).getWinner());
-				break;
-			case GAME_STARTED:
-				log.info("game started: {}",message);
-				break;
-			case JOIN:
-				log.error("Server should not send join messages ({})",message);
-				break;
-			case JOINED:
-				log.info("joined game, url: {}",((JoinedMessage)message).getUrl());
-				break;
-			case UNKNOWN:
-			default:
-				log.error("Unknown message type: {}",message);
-				break;
-			
-		}
-	}
-
-	private void update(Update update) {
+	public void update(Update update) {
+		// calculate which way we should be going
 		Player me=update.getLeft();
-		double yDiff=(update.getBallY()+update.getBallRadius()/2)-(me.getY()+update.getPaddleHeight()/2);
+		double yDiff=(update.getBallY()+update.getBallRadius())-(me.getY()+update.getPaddleHeight()/2);
 		ChangeDirMessage cdm=null;
 		if(yDiff>0.1d && speed<=0.0d) {
 			cdm=new ChangeDirMessage(1.0d);
@@ -62,13 +34,38 @@ public class DogGame extends Game {
 			cdm=new ChangeDirMessage(-1.0d);
 			speed=-1.0d;
 		}
-		if(cdm!=null)
+
+		// check if we're going the wrong way (bounce from the sides)
+		if(cdm==null) {
+			if(speed<0.0d && lastPaddleY<me.getY()) {
+				cdm=new ChangeDirMessage(1.0d);
+				speed=1.0d;
+			} else if(speed>=0.0d && lastPaddleY>me.getY()) {
+				cdm=new ChangeDirMessage(-1.0d);
+				speed=-1.0d;
+			}
+		}
+		lastPaddleY=me.getY();
+
+		// send the command, if any
+		if(cdm!=null) {
 			try {
 				connection.sendMessage(cdm);
 			} catch(IOException e) {
 				// TODO Auto-generated catch block
 				log.error("Whooooops.",e);
 			}
+		}
+	}
+
+	@Override
+	public void gameIsOver(String winner) {
+		log.info("winner: {}",winner);
+	}
+
+	@Override
+	public void gameStarted(List<String> players) {
+		log.info("new game with players: {}",players);
 	}
 
 }
