@@ -1,4 +1,6 @@
 for debug test:
+<code>
 cd ShallowGreen
 ./build.sh
-./start.sh -d foobarista boris.helloworldopen.fi 9090
+./start.sh xbarista boris.helloworldopen.fi 9090
+</code>

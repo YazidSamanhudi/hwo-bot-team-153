@@ -1,33 +1,26 @@
 package shallowgreen;
 
 import java.net.InetSocketAddress;
-import java.util.Arrays;
 
 public class ShallowGreen {
 
-	private static boolean debugMode;
-
 	public static void main(String[] args) {
-		if (args.length == 4) {
-			if ("-d".equals(args[0])) {
-				debugMode = true;
-				args = Arrays.copyOfRange(args, 1, args.length);
-			}
-		}
 		if (args.length > 3 || args.length < 3 || isEmpty(args[0]) || isEmpty(args[1]) || isEmpty(args[2])) {
-			usageAndExit("ShallowGreen.main(): incorrect argument count (!= 3) or given argument is empty.");
+			usageAndExit("ShallowGreen: Incorrect argument count ("+args.length+"!= 3) or given argument is empty.");
 		}
 
 		int port = -1;
 		try {
 			port = Integer.parseInt(args[2]);
+			if(port>65535)
+				throw new NumberFormatException("too high");
 		} catch (NumberFormatException e) {
-			usageAndExit("ShallowGreen.main(): NumberFormatException with args[2]: '" + args[2] + "'.");
+			usageAndExit("ShallowGreen: '"+args[2]+"' is not a valid port number.");
 		}
 
-		InetSocketAddress address = new InetSocketAddress(args[1], port);
-		if (address.isUnresolved()) {
-			usageAndExit("ShallowGreen.main(): InetSocketAddress address can not resolve.");
+		InetSocketAddress address=new InetSocketAddress(args[1],port);
+		if(address.isUnresolved()) {
+			usageAndExit("ShallowGreen: '"+args[1]+"' cannot be resolved as an address.");
 		}
 
 		Connection connection = new Connection(args[0], address);
@@ -42,7 +35,8 @@ public class ShallowGreen {
 	}
 
 	private static void usageAndExit(String message) {
-		System.err.println(message);
+		if(message!=null)
+			System.err.println(message);
 		System.err.println("Usage: ShallowGreen [name] [host] [port]");
 		System.exit(1);
 	}
