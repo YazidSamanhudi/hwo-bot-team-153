@@ -23,7 +23,7 @@ public class ShallowGreen {
 			usageAndExit("ShallowGreen: '"+args[1]+"' cannot be resolved as an address.");
 		}
 
-		Connection connection = new Connection(args[0], address);
+		Connection connection = new Connection(args[0], address, new GameFactory());
 		connection.run();
 	}
 
