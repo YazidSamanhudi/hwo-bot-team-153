@@ -35,7 +35,7 @@ public class RTT implements Runnable {
 	}
 
 	public void run() {
-		byte counter = 0;
+		char counter = 0;
 		long[] ema = {-1, -1};                                     // ema = exponential moving average
 		long start, end;
 		long usecs = -1;
