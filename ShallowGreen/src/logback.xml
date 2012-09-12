@@ -9,7 +9,11 @@
 	</appender>
 
 	<logger name="shallowgreen" level="DEBUG"/>
-
+	<logger name="shallowgreen.Connection" level="INFO"/>
+	<logger name="shallowgreen.predictor.RTT" level="INFO"/>
+<!--
+-->
+	
 	<root level="DEBUG">
 		<!--appender-ref ref="FILE"/-->
 		<appender-ref ref="STDOUT"/>

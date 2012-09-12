@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
+import shallowgreen.predictor.RTT;
 
 public class Connection implements Runnable {
 	private static final Logger log=LoggerFactory.getLogger(Connection.class);
@@ -34,6 +35,7 @@ public class Connection implements Runnable {
 	private InetSocketAddress address;
 	private BufferedWriter bw;
 	private BufferedReader br;
+	private RTT rtt_estimator;
 
 	@SuppressWarnings("unused")
 	private Connection() { }
@@ -41,6 +43,8 @@ public class Connection implements Runnable {
 	public Connection(String name, InetSocketAddress address) {
 		this.name=name;
 		this.address=address;
+		this.rtt_estimator = new RTT(address);
+		this.rtt_estimator.run();
 	}
 
 	public void run() {
@@ -48,6 +52,7 @@ public class Connection implements Runnable {
 		try(Socket socket=new Socket()) {
 			try {
 				log.debug("Connect to {}",address);
+				socket.setTcpNoDelay(true);
 				socket.connect(address);
 				bw=new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 				br=new BufferedReader(new InputStreamReader(socket.getInputStream()));
