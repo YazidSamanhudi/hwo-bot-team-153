@@ -37,6 +37,8 @@ public class Connection implements Runnable {
 	private BufferedWriter bw;
 	private BufferedReader br;
 	private RTT rttEstimator;
+	private int gamesPlayed = 0;
+	private int gamesWon = 0;
 
 	@SuppressWarnings("unused")
 	private Connection() { }
@@ -72,11 +74,16 @@ public class Connection implements Runnable {
 //						game=new PetGame();
 						game=new BallGame();
 						game.setConnection(this);
+						game.setRTTEstimator(rttEstimator);
 					}
 					if(game!=null)
 						game.handleMessage(message);
-					if(message.getMessageType()==Message.MessageType.GAME_IS_OVER)
+					if(message.getMessageType()==Message.MessageType.GAME_IS_OVER) {
+						gamesPlayed++;
+						gamesWon += game.getPoints();
+						log.info("Stats for this bot: games played: {}, won {}, losses {}", new Object[]{gamesPlayed, gamesWon, (gamesPlayed-gamesWon)});
 						game=null;
+					}
 				}
 
 			} catch(IOException e) {

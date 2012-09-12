@@ -10,6 +10,7 @@ import shallowgreen.Game;
 import shallowgreen.message.ChangeDirMessage;
 import shallowgreen.model.Player;
 import shallowgreen.model.Update;
+import shallowgreen.predictor.RTT;
 
 /**
  * Runs after the ball Y mindlessly, with full speed. And doesn't know what to
@@ -66,6 +67,15 @@ public class DogGame extends Game {
 	@Override
 	public void gameStarted(List<String> players) {
 		log.info("new game with players: {}",players);
+	}
+
+	@Override
+	public void setRTTEstimator(RTT rttEstimator) {
+	}
+
+	@Override
+	public int getPoints() {
+		return 0;
 	}
 
 }

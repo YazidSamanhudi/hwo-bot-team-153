@@ -28,7 +28,8 @@ public class RTT implements Runnable {
 	private List<Long> rtt = new ArrayList<>(RTT_SAMPLE_COUNT);  // Ring buffer for n samples
 	private long currentEMA = 0;
 
-	private volatile boolean running=true;
+	private volatile boolean running = true;
+	private boolean printStatistics = false;
 
 	public RTT(InetSocketAddress address) {
 		this.address = address;
@@ -77,7 +78,7 @@ public class RTT implements Runnable {
 
 			counter += 1;
 			
-			if (counter % 10 == 0) {
+			if (counter % 10 == 0 && printStatistics) {
 				log.info("Current RTT estimate: " + this.getRTTmsEstimate() + " ms.");
 			}
 
@@ -95,6 +96,10 @@ public class RTT implements Runnable {
 
 	public void stop() {
 		running = false;
+	}
+	
+	public void printStatistics(boolean bool) {
+		this.printStatistics = bool;
 	}
 
 }

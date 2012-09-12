@@ -10,6 +10,7 @@ import shallowgreen.Game;
 import shallowgreen.message.ChangeDirMessage;
 import shallowgreen.model.Player;
 import shallowgreen.model.Update;
+import shallowgreen.predictor.RTT;
 
 /**
  * put the paddle where the ball is
@@ -19,6 +20,7 @@ public class BallGame extends Game {
 	private static final Logger log = LoggerFactory.getLogger(BallGame.class);
 	private static final long TICKS = 1000;
 	private static final int MESSAGES = 10;
+	private String myName;
 	private double speed;
 	private double minVelocity = 999;
 	private double maxVelocity;
@@ -27,10 +29,14 @@ public class BallGame extends Game {
 	private double prevAngle;
 	private long messageLimitTick;
 	private int messages;
+	private int gamesWon = 0;
 	private boolean firstUpdate = true;
+	private double missiles = 0.0;
+	private RTT rttEstimator;
 
 	@Override
 	public void update(Update update) {
+
 		double ballXVelocity, ballYVelocity;
 		long updateDeltaTime;
 		boolean incoming = true;
@@ -40,17 +46,22 @@ public class BallGame extends Game {
 
 		if (!firstUpdate) {
 
+			if (update.getNrOfMissiles() != missiles) {
+				log.info("Wahoo, missiles says '" + update.getNrOfMissiles() + "'!");
+			}
+
 			checkPerTickMessageLimit(update);
 			updateDeltaTime = update.getTime() - prevUpdate.getTime();
 			myPreviousPosition = prevUpdate.getLeft();
-			double paddleVelocity = (myCurrentPosition.getY() - myPreviousPosition.getY()) / updateDeltaTime;
 
 			ballXVelocity = update.getBallX() - prevUpdate.getBallX();
 			ballYVelocity = update.getBallY() - prevUpdate.getBallY();
 			//due to multiplication, always positive
+			// this is travel distance per update interval time
 			double ballTravelDistance = Math.sqrt((ballXVelocity * ballXVelocity) + (ballYVelocity * ballYVelocity)) / updateDeltaTime;
 			double ballAngle = Math.atan2(ballYVelocity, ballXVelocity);
 
+//			double paddleVelocity = (myCurrentPosition.getY() - myPreviousPosition.getY()) / updateDeltaTime;
 //			log.debug("Speed: {}, Angle: {}, PT: {}, PV: {}, min: {}, max: {}", new Object[]{ballTravelDistance, ballAngle, paddleTarget, paddleVelocity, minVelocity, maxVelocity});
 
 			setSeenBallVelocityLimits(ballTravelDistance);
@@ -60,14 +71,18 @@ public class BallGame extends Game {
 			if (incoming && prevAngle != ballAngle) {
 				estimateBallReturnYPosition(update, ballXVelocity, ballYVelocity, ballAngle);
 			}
-			
+
 			if (!incoming && prevAngle != ballAngle) {
 				estimateReturnpointFromLeavingBall(update, ballXVelocity, ballYVelocity, ballAngle);
 			}
 		}
-		
-		if (firstUpdate && !incoming) {
-			paddleTarget = update.getFieldMaxHeight() / 2 - (update.getPaddleHeight() / 2);
+
+		if (firstUpdate) {
+			missiles = update.getNrOfMissiles();
+			log.debug("Missiles: " + missiles + ", current RTT EMA: " + rttEstimator.getRTTmsEstimate());
+			if (!incoming) {
+				paddleTarget = update.getFieldMaxHeight() / 2 - (update.getPaddleHeight() / 2);
+			}
 		}
 //		else
 //			paddleTarget = update.getBallY();
@@ -162,7 +177,7 @@ public class BallGame extends Game {
 			}
 			safety--;
 		}
-		
+
 		xVel *= -1.0d;
 
 		while (simX > 0 && safety > 0) {
@@ -185,12 +200,25 @@ public class BallGame extends Game {
 	}
 
 	@Override
-	public void gameIsOver(String winner) {
-		log.info("winner: {}", winner);
+	public int getPoints() {
+		return gamesWon;
+	}
+	
+	@Override
+	public void setRTTEstimator(RTT rttEstimator) {
+		this.rttEstimator = rttEstimator;
 	}
 
 	@Override
+	public void gameIsOver(String winner) {
+		if (winner.equalsIgnoreCase(myName)) {
+			gamesWon++;
+		} 
+	}
+	
+	@Override
 	public void gameStarted(List<String> players) {
-		log.info("new game with players: {}", players);
+		myName = players.get(0);
+		log.info("New game. Players: {}", players);
 	}
 }

@@ -10,16 +10,16 @@ import shallowgreen.Game;
 import shallowgreen.message.ChangeDirMessage;
 import shallowgreen.model.Player;
 import shallowgreen.model.Update;
+import shallowgreen.predictor.RTT;
 
 /**
  * put the paddle where the ball is
  */
 public class PetGame extends Game {
-	private static final Logger log=LoggerFactory.getLogger(PetGame.class);
 
+	private static final Logger log = LoggerFactory.getLogger(PetGame.class);
 	private static final long TICKS = 1000;
 	private static final int MESSAGES = 10;
-
 	private double speed;
 	private double minVelocity = 999;
 	private double maxVelocity;
@@ -31,14 +31,13 @@ public class PetGame extends Game {
 
 	@Override
 	public void update(Update update) {
-		double xVel,yVel;
+		double xVel, yVel;
 		long deltaTime;
 		boolean incoming = true;
 		// calculate which way we should be going
-		Player me=update.getLeft();
+		Player me = update.getLeft();
 		if (prevUpdate != null) {
-			if ((update.getTime() - messageLimitTick) > TICKS)
-			{
+			if ((update.getTime() - messageLimitTick) > TICKS) {
 				messages = 0;
 				messageLimitTick = update.getTime();
 			}
@@ -47,18 +46,22 @@ public class PetGame extends Game {
 			yVel = update.getBallY() - prevUpdate.getBallY();
 			deltaTime = update.getTime() - prevUpdate.getTime();
 			//due to multiplication, always positive
-			double distance = Math.sqrt((xVel*xVel)+(yVel*yVel)) / deltaTime;
+			double distance = Math.sqrt((xVel * xVel) + (yVel * yVel)) / deltaTime;
 			double paddleVel = (me.getY() - prevMe.getY()) / deltaTime;
-			double angle = Math.atan2(yVel,xVel);
-			log.debug("Speed: {}, Angle: {}, PT: {}, PV: {}, min: {}, max: {}",new Object[] { distance,angle,paddleTarget,paddleVel,minVelocity,maxVelocity });
-			if (distance<minVelocity) minVelocity = distance;
-			if (distance>maxVelocity) maxVelocity = distance;
-			if (angle < (Math.PI/2) && angle > (Math.PI/-2))
+			double angle = Math.atan2(yVel, xVel);
+			log.debug("Speed: {}, Angle: {}, PT: {}, PV: {}, min: {}, max: {}", new Object[]{distance, angle, paddleTarget, paddleVel, minVelocity, maxVelocity});
+			if (distance < minVelocity) {
+				minVelocity = distance;
+			}
+			if (distance > maxVelocity) {
+				maxVelocity = distance;
+			}
+			if (angle < (Math.PI / 2) && angle > (Math.PI / -2)) {
 				incoming = false;
-			else
+			} else {
 				incoming = true;
-			if (incoming && prevAngle != angle)
-			{
+			}
+			if (incoming && prevAngle != angle) {
 				int safety = 999999;
 				double simX = update.getBallX();
 				double simY = update.getBallY();
@@ -69,7 +72,7 @@ public class PetGame extends Game {
 					if (simY < 0) {
 						yVel *= -1.0d;
 						simY *= -1.0d;
-					} else if(simY > update.getFieldMaxHeight()) {
+					} else if (simY > update.getFieldMaxHeight()) {
 						yVel *= -1.0d;
 						simY = update.getFieldMaxHeight() - (simY - update.getFieldMaxHeight());
 					}
@@ -78,49 +81,58 @@ public class PetGame extends Game {
 				paddleTarget = simY;
 				prevAngle = angle;
 			}
-		} 
-		if (!incoming)
-			paddleTarget = update.getFieldMaxHeight()/2 - (update.getPaddleHeight()/2);
+		}
+		if (!incoming) {
+			paddleTarget = update.getFieldMaxHeight() / 2 - (update.getPaddleHeight() / 2);
+		}
 //		else
 //			paddleTarget = update.getBallY();
 
 		// safety one pixel
-		double deadZone = (update.getPaddleHeight()/2)-1.0d+update.getBallRadius();
-		double yDiff=paddleTarget-me.getY()-(update.getPaddleHeight()/2);
-		ChangeDirMessage cdm=null;
-		if(yDiff>deadZone && speed<=0.0d) {
-			cdm=new ChangeDirMessage(1.0d);
-			speed=1.0d;
-		} else if(yDiff<-deadZone && speed>=0.0d) {
-			cdm=new ChangeDirMessage(-1.0d);
-			speed=-1.0d;
-		} else if (speed!=0.0d && yDiff<deadZone && yDiff>-deadZone) {
-			cdm=new ChangeDirMessage(0.0d);
-			speed=0.0d;
+		double deadZone = (update.getPaddleHeight() / 2) - 1.0d + update.getBallRadius();
+		double yDiff = paddleTarget - me.getY() - (update.getPaddleHeight() / 2);
+		ChangeDirMessage cdm = null;
+		if (yDiff > deadZone && speed <= 0.0d) {
+			cdm = new ChangeDirMessage(1.0d);
+			speed = 1.0d;
+		} else if (yDiff < -deadZone && speed >= 0.0d) {
+			cdm = new ChangeDirMessage(-1.0d);
+			speed = -1.0d;
+		} else if (speed != 0.0d && yDiff < deadZone && yDiff > -deadZone) {
+			cdm = new ChangeDirMessage(0.0d);
+			speed = 0.0d;
 		}
 
 		prevUpdate = update;
 
 		// send the command, if any
-		if(cdm!=null && messages < MESSAGES) {
+		if (cdm != null && messages < MESSAGES) {
 			try {
 				connection.sendMessage(cdm);
 				messages++;
-			} catch(IOException e) {
+			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				log.error("Whooooops.",e);
+				log.error("Whooooops.", e);
 			}
 		}
 	}
 
 	@Override
 	public void gameIsOver(String winner) {
-		log.info("winner: {}",winner);
+		log.info("winner: {}", winner);
 	}
 
 	@Override
 	public void gameStarted(List<String> players) {
-		log.info("new game with players: {}",players);
+		log.info("new game with players: {}", players);
 	}
-
+	
+	@Override
+	public void setRTTEstimator(RTT rttEstimator) {
+	}
+	
+	@Override
+	public int getPoints() {
+		return 0;
+	}
 }

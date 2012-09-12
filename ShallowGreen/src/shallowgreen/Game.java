@@ -14,6 +14,7 @@ import shallowgreen.message.JoinMessage;
 import shallowgreen.message.JoinedMessage;
 import shallowgreen.message.Message;
 import shallowgreen.model.Update;
+import shallowgreen.predictor.RTT;
 
 public abstract class Game {
 	private static final Logger log=LoggerFactory.getLogger(Game.class);
@@ -79,5 +80,7 @@ public abstract class Game {
 	public abstract void update(Update update);
 	public abstract void gameIsOver(String winner);
 	public abstract void gameStarted(List<String> players);
+	public abstract void setRTTEstimator(RTT rttEstimator);
+	public abstract int getPoints();
 
 }
