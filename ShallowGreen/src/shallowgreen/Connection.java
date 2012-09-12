@@ -44,7 +44,7 @@ public class Connection implements Runnable {
 		this.name=name;
 		this.address=address;
 		this.rttEstimator = new RTT(address);
-		this.rttEstimator.run();
+		new Thread(rttEstimator).start();
 	}
 
 	public void run() {
