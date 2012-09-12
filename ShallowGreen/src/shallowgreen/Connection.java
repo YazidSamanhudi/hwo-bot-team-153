@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import shallowgreen.game.DogGame;
+import shallowgreen.game.PetGame;
 import shallowgreen.message.JoinMessage;
 import shallowgreen.message.Message;
 
@@ -61,7 +62,7 @@ public class Connection implements Runnable {
 				while((message=readMessage())!=null) {
 					if(message.getMessageType()==Message.MessageType.GAME_STARTED) {
 						// FIXME: select proper game here
-						game=new DogGame();
+						game=new PetGame();
 						game.setConnection(this);
 					}
 					if(game!=null)
