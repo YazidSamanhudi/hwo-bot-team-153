@@ -11,6 +11,7 @@ import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import shallowgreen.game.BallGame;
 import shallowgreen.game.DogGame;
 import shallowgreen.game.PetGame;
 import shallowgreen.message.JoinMessage;
@@ -67,7 +68,9 @@ public class Connection implements Runnable {
 				while((message=readMessage())!=null) {
 					if(message.getMessageType()==Message.MessageType.GAME_STARTED) {
 						// FIXME: select proper game here
-						game=new PetGame();
+//						game=new DogGame();
+//						game=new PetGame();
+						game=new BallGame();
 						game.setConnection(this);
 					}
 					if(game!=null)
