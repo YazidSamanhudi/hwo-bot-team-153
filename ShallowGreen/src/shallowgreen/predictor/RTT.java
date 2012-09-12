@@ -18,14 +18,17 @@ import org.slf4j.LoggerFactory;
  * @author dogo
  */
 public class RTT implements Runnable {
-
 	private static final Logger log = LoggerFactory.getLogger(RTT.class);
-	private final int CONNECT_TIMEOUT_MS = 1000;
-	private final int RTT_SAMPLE_INTERVAL_MS = 500;              // n ms sleep after close before new .connect()
-	private final int RTT_SAMPLE_COUNT = 5;                      // size for the ring buffer to keep samples
+
+	private static final int CONNECT_TIMEOUT_MS = 1000;
+	private static final int RTT_SAMPLE_INTERVAL_MS = 500;              // n ms sleep after close before new .connect()
+	private static final int RTT_SAMPLE_COUNT = 5;                      // size for the ring buffer to keep samples
+
 	private InetSocketAddress address;
 	private List<Long> rtt = new ArrayList<>(RTT_SAMPLE_COUNT);  // Ring buffer for n samples
-	private long current_ema = 0;
+	private long currentEMA = 0;
+
+	private volatile boolean running=true;
 
 	public RTT(InetSocketAddress address) {
 		this.address = address;
@@ -38,7 +41,7 @@ public class RTT implements Runnable {
 		long usecs = -1;
 		Socket socket;
 		log.info("RTT estimator thread running.");
-		while (true) {
+		while (running) {
 			try {
 				socket = new Socket();
 				socket.setTcpNoDelay(true);
@@ -67,10 +70,10 @@ public class RTT implements Runnable {
 			rtt.set((counter % RTT_SAMPLE_COUNT), usecs);
 			log.debug("RTT estimator: socket.connect() took " + usecs + " µs.");
 
-// EMA = exponential moving average. EMA_now = EMA_previous + 2/(RTT_SAMPLE_COUNT+1) * (RTT_now - EMA_previous)
+			// EMA = exponential moving average. EMA_now = EMA_previous + 2/(RTT_SAMPLE_COUNT+1) * (RTT_now - EMA_previous)
 			ema[(counter % 2)] = (long) (ema[(counter + 1) % 2] + ( (double)2.0 / (RTT_SAMPLE_COUNT + 1.0) * (usecs - ema[(counter + 1) % 2])));
-			current_ema = ema[counter % 2];
-			log.debug("RTT estimator: current_ema = " + current_ema + ", ema[0] = " + ema[0] + ", ema[1] = " + ema[1] + ".");
+			currentEMA = ema[counter % 2];
+			log.debug("RTT estimator: currentEMA = " + currentEMA + ", ema[0] = " + ema[0] + ", ema[1] = " + ema[1] + ".");
 
 			counter += 1;
 			
@@ -87,6 +90,11 @@ public class RTT implements Runnable {
 	}
 
 	public double getRTTmsEstimate() {
-		return (current_ema / 1000.0);
+		return (currentEMA / 1000.0);
 	}
+
+	public void stop() {
+		running = false;
+	}
+
 }

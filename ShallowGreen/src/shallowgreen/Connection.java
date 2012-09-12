@@ -34,7 +34,7 @@ public class Connection implements Runnable {
 	private InetSocketAddress address;
 	private BufferedWriter bw;
 	private BufferedReader br;
-	private RTT rtt_estimator;
+	private RTT rttEstimator;
 
 	@SuppressWarnings("unused")
 	private Connection() { }
@@ -42,8 +42,8 @@ public class Connection implements Runnable {
 	public Connection(String name, InetSocketAddress address) {
 		this.name=name;
 		this.address=address;
-		this.rtt_estimator = new RTT(address);
-		this.rtt_estimator.run();
+		this.rttEstimator = new RTT(address);
+		this.rttEstimator.run();
 	}
 
 	public void run() {
