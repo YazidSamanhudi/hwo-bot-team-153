@@ -36,62 +36,62 @@ public class Update {
 		return field;
 	}
 
-	// shortcut
+	/** shortcut/convenience to getLeft().getY() */
 	public double getLeftY() {
 		return left.getY();
 	}
 
-	// shortcut
+	/** shortcut/convenience to getLeft().getPlayerName() */
 	public String getLeftPlayerName() {
 		return left.getPlayerName();
 	}
 
-	// shortcut
+	/** shortcut/convenience to getRight().getY() */
 	public double getRightY() {
 		return right.getY();
 	}
 
-	// shortcut
+	/** shortcut/convenience to getRight().getPlayerName() */
 	public String getRightPlayerName() {
 		return right.getPlayerName();
 	}
 
-	// shortcut
+	/** shortcut/convenience to getPosition().getBallX() */
 	public double getBallX() {
 		return ball.getPosition().getX();
 	}
 
-	// shortcut
+	/** shortcut/convenience to getPosition().getBallY() */
 	public double getBallY() {
 		return ball.getPosition().getY();
 	}
 
-	// shortcut
+	/** shortcut/convenience to getField().getFieldMaxWidth() */
 	public double getFieldMaxWidth() {
 		return field.getMaxWidth();
 	}
 
-	// shortcut
+	/** shortcut/convenience to getField().getFieldMaxHeight() */
 	public double getFieldMaxHeight() {
 		return field.getMaxHeight();
 	}
 
-	// shortcut
+	/** shortcut/convenience to getField().getPaddleHeight() */
 	public double getPaddleHeight() {
 		return field.getPaddleHeight();
 	}
 
-	// shortcut
+	/** shortcut/convenience to getField().getPaddleWidth() */
 	public double getPaddleWidth() {
 		return field.getPaddleWidth();
 	}
 
-	// shortcut
+	/** shortcut/convenience to getField().getBallRadius() */
 	public double getBallRadius() {
 		return field.getBallRadius();
 	}
 
-	// shortcut
+	/** shortcut/convenience to getField().getTickInterval() */
 	public double getTickInterval() {
 		return field.getTickInterval();
 	}
