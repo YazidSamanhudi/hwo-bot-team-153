@@ -39,14 +39,23 @@ public class BallGame extends Game {
 	@Override
 	public void update(Update update) {
 
+		boolean incoming = true;
 		double ballXVelocity, ballYVelocity;
 		long updateDeltaTime;
-		boolean incoming = true;
 		// calculate which way we should be going
 		Player myPreviousPosition;
 		Player myCurrentPosition = update.getLeft();
 
-		if (!firstUpdate) {
+		if (firstUpdate) {
+			bpEstimator = new BallPosition();
+			missiles = update.getNrOfMissiles();
+			log.debug("Missiles: " + missiles + ", current RTT EMA: " + rttEstimator.getRTTmsEstimate());
+			if (!incoming) {
+				paddleTarget = update.getFieldMaxHeight() / 2 - (update.getPaddleHeight() / 2);
+			}
+		}
+
+		else {
 
 			if (update.getNrOfMissiles() != missiles) {
 				log.info("Wahoo, missiles says '" + update.getNrOfMissiles() + "'!");
@@ -79,17 +88,8 @@ public class BallGame extends Game {
 			}
 		}
 
-		if (firstUpdate) {
-			bpEstimator = new BallPosition();
-			missiles = update.getNrOfMissiles();
-			log.debug("Missiles: " + missiles + ", current RTT EMA: " + rttEstimator.getRTTmsEstimate());
-			if (!incoming) {
-				paddleTarget = update.getFieldMaxHeight() / 2 - (update.getPaddleHeight() / 2);
-			}
-		}
-
 		// safety one pixel
-		double deadZone = (update.getPaddleHeight() / 2) - 1.0d + update.getBallRadius();
+		double deadZone = (update.getPaddleHeight() / 2) - 2.0d + update.getBallRadius();
 		double yDiff = paddleTarget - myCurrentPosition.getY() - (update.getPaddleHeight() / 2);
 		ChangeDirMessage cdm = null;
 		if (yDiff > deadZone && speed <= 0.0d) {
