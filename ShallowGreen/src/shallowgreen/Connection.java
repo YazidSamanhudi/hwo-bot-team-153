@@ -11,9 +11,6 @@ import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import shallowgreen.game.BallGame;
-import shallowgreen.game.DogGame;
-import shallowgreen.game.PetGame;
 import shallowgreen.message.JoinMessage;
 import shallowgreen.message.Message;
 
