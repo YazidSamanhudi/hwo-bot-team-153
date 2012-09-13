@@ -5,6 +5,11 @@ import java.net.InetSocketAddress;
 public class ShallowGreen {
 
 	public static void main(String[] args) {
+		ShallowGreen sg=new ShallowGreen();
+		sg.mainParser(args);
+	}
+
+	public void mainParser(String[] args) {
 		if (args.length > 3 || args.length < 3 || isEmpty(args[0]) || isEmpty(args[1]) || isEmpty(args[2])) {
 			usageAndExit("ShallowGreen: Incorrect argument count ("+args.length+"!= 3) or given argument is empty.");
 		}
@@ -23,21 +28,26 @@ public class ShallowGreen {
 			usageAndExit("ShallowGreen: '"+args[1]+"' cannot be resolved as an address.");
 		}
 
-		Connection connection = new Connection(args[0], address, new GameFactory());
+		Connection connection=newConnection(args[0],address,new GameFactory());
 		connection.run();
 	}
 
-	private static boolean isEmpty(String s) {
+	protected boolean isEmpty(String s) {
 		if (s == null || s.length() < 1 || s.trim().length() < 1) {
 			return true;
 		}
 		return false;
 	}
 
-	private static void usageAndExit(String message) {
+	protected void usageAndExit(String message) {
 		if(message!=null)
 			System.err.println(message);
-		System.err.println("Usage: ShallowGreen [name] [host] [port]");
+		System.err.println("Usage: "+getClass().getSimpleName()+" [name] [host] [port]");
 		System.exit(1);
 	}
+
+	protected Connection newConnection(String name, InetSocketAddress address, GameFactory gameFactory) {
+		return new Connection(name,address,new GameFactory());
+	}
+
 }
