@@ -39,13 +39,15 @@ public class Connection implements Runnable {
 	private RTT rttEstimator;
 	private int gamesPlayed = 0;
 	private int gamesWon = 0;
+	private GameFactory gameFactory;
 
 	@SuppressWarnings("unused")
 	private Connection() { }
 
-	public Connection(String name, InetSocketAddress address) {
+	public Connection(String name, InetSocketAddress address, GameFactory gameFactory) {
 		this.name=name;
 		this.address=address;
+		this.gameFactory=gameFactory;
 		this.rttEstimator = new RTT(address);
 		new Thread(rttEstimator).start();
 	}
@@ -69,10 +71,7 @@ public class Connection implements Runnable {
 				Message message;
 				while((message=readMessage())!=null) {
 					if(message.getMessageType()==Message.MessageType.GAME_STARTED) {
-						// FIXME: select proper game here
-//						game=new DogGame();
-//						game=new PetGame();
-						game=new BallGame();
+						game=gameFactory.newGame();
 						game.setConnection(this);
 						game.setRTTEstimator(rttEstimator);
 					}
