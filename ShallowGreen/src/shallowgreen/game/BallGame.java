@@ -11,6 +11,7 @@ import shallowgreen.message.ChangeDirMessage;
 import shallowgreen.model.Player;
 import shallowgreen.model.Update;
 import shallowgreen.predictor.RTT;
+import shallowgreen.predictor.BallPosition;
 
 /**
  * put the paddle where the ball is
@@ -33,6 +34,7 @@ public class BallGame extends Game {
 	private boolean firstUpdate = true;
 	private double missiles = 0.0;
 	private RTT rttEstimator;
+	private BallPosition bpEstimator;
 
 	@Override
 	public void update(Update update) {
@@ -69,23 +71,22 @@ public class BallGame extends Game {
 			incoming = ballIsIncoming(ballAngle);
 
 			if (incoming && prevAngle != ballAngle) {
-				estimateBallReturnYPosition(update, ballXVelocity, ballYVelocity, ballAngle);
+				paddleTarget = bpEstimator.targetPosition(update, ballXVelocity, ballYVelocity, ballAngle);
 			}
 
 			if (!incoming && prevAngle != ballAngle) {
-				estimateReturnpointFromLeavingBall(update, ballXVelocity, ballYVelocity, ballAngle);
+				paddleTarget = bpEstimator.returnPosition(update, ballXVelocity, ballYVelocity, ballAngle);
 			}
 		}
 
 		if (firstUpdate) {
+			bpEstimator = new BallPosition();
 			missiles = update.getNrOfMissiles();
 			log.debug("Missiles: " + missiles + ", current RTT EMA: " + rttEstimator.getRTTmsEstimate());
 			if (!incoming) {
 				paddleTarget = update.getFieldMaxHeight() / 2 - (update.getPaddleHeight() / 2);
 			}
 		}
-//		else
-//			paddleTarget = update.getBallY();
 
 		// safety one pixel
 		double deadZone = (update.getPaddleHeight() / 2) - 1.0d + update.getBallRadius();
@@ -137,67 +138,6 @@ public class BallGame extends Game {
 		return !(angle < (Math.PI / 2) && angle > (Math.PI / -2));
 	}
 
-	private void estimateBallReturnYPosition(Update update, double xVel, double yVel, double angle) {
-
-		int safety = 999999;
-		double simX = update.getBallX();
-		double simY = update.getBallY();
-		while (simX > 0 && safety > 0) {
-//					System.out.println("X:" + simX + ",Y:" + simY + ",Xv:" + xVel + ",Yv:" + yVel);
-			simX += xVel;
-			simY += yVel;
-			if (simY < 0) {
-				yVel *= -1.0d;
-				simY *= -1.0d;
-			} else if (simY > update.getFieldMaxHeight()) {
-				yVel *= -1.0d;
-				simY = update.getFieldMaxHeight() - (simY - update.getFieldMaxHeight());
-			}
-			safety--;
-		}
-		paddleTarget = simY;
-		prevAngle = angle;
-
-	}
-
-	private void estimateReturnpointFromLeavingBall(Update update, double xVel, double yVel, double angle) {
-		int safety = 999999;
-		double simX = update.getBallX();
-		double simY = update.getBallY();
-		while (simX < update.getFieldMaxWidth() - update.getPaddleWidth() && safety > 0) {
-//					System.out.println("X:" + simX + ",Y:" + simY + ",Xv:" + xVel + ",Yv:" + yVel);
-			simX += xVel;
-			simY += yVel;
-			if (simY < 0) {
-				yVel *= -1.0d;
-				simY *= -1.0d;
-			} else if (simY > update.getFieldMaxHeight()) {
-				yVel *= -1.0d;
-				simY = update.getFieldMaxHeight() - (simY - update.getFieldMaxHeight());
-			}
-			safety--;
-		}
-
-		xVel *= -1.0d;
-
-		while (simX > 0 && safety > 0) {
-//					System.out.println("X:" + simX + ",Y:" + simY + ",Xv:" + xVel + ",Yv:" + yVel);
-			simX += xVel;
-			simY += yVel;
-			if (simY < 0) {
-				yVel *= -1.0d;
-				simY *= -1.0d;
-			} else if (simY > update.getFieldMaxHeight()) {
-				yVel *= -1.0d;
-				simY = update.getFieldMaxHeight() - (simY - update.getFieldMaxHeight());
-			}
-			safety--;
-		}
-
-		paddleTarget = simY;
-		prevAngle = angle;
-
-	}
 
 	@Override
 	public int getPoints() {
