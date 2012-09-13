@@ -70,7 +70,7 @@ public class FuturePathPredictionVisualizer extends Game {
 	private double left;
 	private double right;
 
-	private static class Coords {
+	private static class BallStatus {
 		private double x;
 		private double y;
 		private double xVel;
@@ -80,24 +80,36 @@ public class FuturePathPredictionVisualizer extends Game {
 	@Override
 	public void update(Update update) {
 		if(previousUpdate==null) {
+			// initialize the status with the first Update
 			previousUpdate=update;
 			// top seems to bounce too early
 			top=update.getBallRadius()*2;
-			// official UI is 479px high
-			bottom=update.getFieldMaxHeight()-1.0d;
+			// official visualizer is 479px high which is 1px less than this.
+			bottom=update.getFieldMaxHeight();
 			left=update.getPaddleWidth();
 			right=update.getFieldMaxWidth()-update.getPaddleWidth();
 			return;
 		}
 
-		Coords now=new Coords();
+		// top and bottom can be calibrated runtime
+		if(top>update.getBallY()+update.getBallRadius())
+			top=update.getBallY()+update.getBallRadius();
+		if(bottom<update.getBallY()+update.getBallRadius())
+			bottom=update.getBallY()+update.getBallRadius();
+		// left and right cannot be calibrated - even losing balls affect the numbers
+		//if(left>update.getBallX()+update.getBallRadius())
+		//	left=update.getBallX()+update.getBallRadius();
+		//if(right<update.getBallX()+update.getBallRadius())
+		//	right=update.getBallX()+update.getBallRadius();
+
+		BallStatus now=new BallStatus();
 		now.x=update.getBallX()+update.getBallRadius();
 		now.y=update.getBallY()+update.getBallRadius();
 		now.xVel=update.getBallX()-previousUpdate.getBallX();
 		now.yVel=update.getBallY()-previousUpdate.getBallY();
 
 		for(int i=0; i<7; i++) {
-			Coords next=calculateNext(now);
+			BallStatus next=calculateNext(now);
 			Visualizer.broadcastMessage(VisualMessageTool.updateMessage("line","future"+i,"class","pretr"
 							,"x1",now.x
 							,"y1",now.y
@@ -110,8 +122,8 @@ public class FuturePathPredictionVisualizer extends Game {
 		previousUpdate=update;
 	}
 
-	private Coords calculateNext(Coords from) {
-		Coords to=new Coords();
+	private BallStatus calculateNext(BallStatus from) {
+		BallStatus to=new BallStatus();
 
 		double distanceToX;
 		if(from.xVel<0.0d) // going left
