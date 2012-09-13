@@ -2,6 +2,7 @@ package shallowgreen.visualizer;
 
 import shallowgreen.Game;
 import shallowgreen.GameFactory;
+import shallowgreen.visualizer.game.FuturePathPredictionVisualizer;
 import shallowgreen.visualizer.game.ServerUpdateVisualizer;
 
 public class VisualizerGameFactory extends GameFactory {
@@ -17,7 +18,7 @@ public class VisualizerGameFactory extends GameFactory {
 
 	@Override
 	public Game newGame() {
-		return new ServerUpdateVisualizer(wrappedGameFactory.newGame());
+		return new ServerUpdateVisualizer(new FuturePathPredictionVisualizer(wrappedGameFactory.newGame()));
 	}
 
 }

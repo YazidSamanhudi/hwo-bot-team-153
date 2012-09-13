@@ -23,6 +23,12 @@
 			stroke-opacity: 0.3;
 			fill: none;
 		}
+		/* future ball trail prediction */
+		.pretr {
+			stroke-width: 1;
+			stroke: blue;
+			stroke-opacity: 0.6;
+		}
 	</style>
 </head>
 <body>
@@ -34,9 +40,13 @@
 	<h1 id="mainTitle" style="margin-left: -8px">FINISH HIM!</h1>
 	<div id="board" style="width: 640px; height: 479px">
 		<svg id="fieldArea" width="640px" height="479px" viewbox="0 0 640 479">
+			<!--
+			<rect id="playareaborders" x="0" y="0" width="640" height="479" style="stroke-width: 1; stroke: red; fill: none;"></rect>
+			-->
 		</svg>
 	</div>
 </div>
+
 <script type='text/javascript'>
 if(!window.WebSocket) {
 	window.WebSocket=window.MozWebSocket;
