@@ -16,7 +16,7 @@ public class BallPosition {
 	public BallPosition() {
 	}
 
-	public double returnPosition(Update update, double xVel, double yVel, double angle) {
+	public double returnPosition(Update update, double xVel, double yVel) {
 
 		int safety = 999999;
 		double simX = update.getBallX();
@@ -53,7 +53,7 @@ public class BallPosition {
 		return simY;
 	}
 
-	public double targetPosition(Update update, double xVel, double yVel, double angle) {
+	public double targetPosition(Update update, double xVel, double yVel) {
 
 		int safety = 999999;
 		double simX = update.getBallX();

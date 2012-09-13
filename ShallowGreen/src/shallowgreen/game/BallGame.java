@@ -80,11 +80,11 @@ public class BallGame extends Game {
 			incoming = ballIsIncoming(ballAngle);
 
 			if (incoming && prevAngle != ballAngle) {
-				paddleTarget = bpEstimator.targetPosition(update, ballXVelocity, ballYVelocity, ballAngle);
+				paddleTarget = bpEstimator.targetPosition(update, ballXVelocity, ballYVelocity);
 			}
 
 			if (!incoming && prevAngle != ballAngle) {
-				paddleTarget = bpEstimator.returnPosition(update, ballXVelocity, ballYVelocity, ballAngle);
+				paddleTarget = bpEstimator.returnPosition(update, ballXVelocity, ballYVelocity);
 			}
 		}
 
