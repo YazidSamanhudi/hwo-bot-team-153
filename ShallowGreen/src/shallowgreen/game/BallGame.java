@@ -67,7 +67,7 @@ public class BallGame extends Game {
 
 			ballXVelocity = update.getBallX() - prevUpdate.getBallX();
 			ballYVelocity = update.getBallY() - prevUpdate.getBallY();
-			//due to multiplication, always positive
+			// due to multiplication, always positive
 			// this is travel distance per update interval time
 			double ballTravelDistance = Math.sqrt((ballXVelocity * ballXVelocity) + (ballYVelocity * ballYVelocity)) / updateDeltaTime;
 			double ballAngle = Math.atan2(ballYVelocity, ballXVelocity);
@@ -79,13 +79,13 @@ public class BallGame extends Game {
 
 			incoming = ballIsIncoming(ballAngle);
 
-			if (incoming && prevAngle != ballAngle) {
-				paddleTarget = bpEstimator.targetPosition(update, ballXVelocity, ballYVelocity);
-			}
+//			if (incoming && prevAngle != ballAngle) {
+				paddleTarget = bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity);
+//			}
 
-			if (!incoming && prevAngle != ballAngle) {
-				paddleTarget = bpEstimator.returnPosition(update, ballXVelocity, ballYVelocity);
-			}
+//			if (!incoming && prevAngle != ballAngle) {
+//				paddleTarget = bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity);
+//			}
 		}
 
 		// safety one pixel
