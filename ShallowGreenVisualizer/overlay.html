@@ -1,0 +1,92 @@
+<html>
+<head>
+	<title>ShallowGreen Visualizer</title>
+	<link rel="stylesheet" type="text/css" href="http://boris.helloworldopen.fi:8080/pingpong.css">
+	<link rel="stylesheet" type="text/css" href="http://boris.helloworldopen.fi:8080/fonts.css">
+	<style type="text/css">
+		/* server update */
+		.srvu {
+			stroke-width: 1;
+			stroke: yellow;
+			fill: none;
+		}
+		/* server update ball trail */
+		.srvutr {
+			stroke-width: 1;
+			stroke: yellow;
+			stroke-opacity: 0.4;
+		}
+		/* server update ball history elements */
+		.srvuh {
+			stroke-width: 1;
+			stroke: yellow;
+			stroke-opacity: 0.3;
+			fill: none;
+		}
+	</style>
+</head>
+<body>
+	<div style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; border: 0px; padding: 0px">
+		<iframe width="100%" height="100%" frameborder="0" src="___IFRAMEURL___">
+		</iframe>
+	</div>
+<div style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 8px; margin-top: 0px; padding: 0px">
+	<h1 id="mainTitle" style="margin-left: -8px">FINISH HIM!</h1>
+	<div id="board" style="width: 640px; height: 479px">
+		<svg id="fieldArea" width="640px" height="479px" viewbox="0 0 640 479">
+		</svg>
+	</div>
+</div>
+<script type='text/javascript'>
+if(!window.WebSocket) {
+	window.WebSocket=window.MozWebSocket;
+	if(!window.WebSocket)
+		alert("no WebSocket");
+}
+
+function $() {
+	return document.getElementById(arguments[0]);
+}
+
+function createSVG(name,id,attrs) {
+	e=document.createElementNS("http://www.w3.org/2000/svg",name);
+	updateSVGAttrs(e,attrs);
+	e.setAttribute("id",id);
+	return e;
+}
+
+function updateSVGAttrs(e,attrs) {
+	for(var prop in attrs) {
+		if(attrs.hasOwnProperty(prop)) {
+			e.setAttribute(prop,attrs[prop]);
+		}
+	}
+	return e;
+}
+
+var wsloc=document.location.toString();
+wsloc=wsloc.replace('http://','ws://');
+wsloc=wsloc+"/update";
+var ws=new WebSocket(wsloc,'ShallowGreenVisualizer');
+ws.onmessage=function(msg) {
+	if(msg.data) {
+		command=JSON.parse(msg.data);
+		if(command.type=='usvg') {
+			e=$(command.id);
+			if(e==null) {
+				e=createSVG(command.tag,command.id,command.attrs);
+				$('fieldArea').appendChild(e);
+			} else {
+				updateSVGAttrs(e,command.attrs);
+			}
+		} else if(command.type=='remove') {
+			e=$(command.id);
+			if(e!=null)
+				e.parentElement.removeChild(e);
+		}
+	}
+};
+
+</script>
+</body>
+</html>
