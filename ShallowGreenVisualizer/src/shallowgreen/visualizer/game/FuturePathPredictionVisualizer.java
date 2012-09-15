@@ -114,16 +114,20 @@ public class FuturePathPredictionVisualizer extends Game {
 		Coords to=new Coords();
 
 		double distanceToX;
-		if(from.xVel<0.0d) // going left
-			distanceToX=(from.x-left);
-		else // going right
-			distanceToX=(right-from.x);
+		if(from.xVel<0.0d) {
+                distanceToX=(from.x-left);
+            }
+		else {
+                distanceToX=(right-from.x);
+            }
 
 		double distanceToY;
-		if(from.yVel<0.0d) // going up
-			distanceToY=(from.y-top);
-		else // going down
-			distanceToY=(bottom-from.y);
+		if(from.yVel<0.0d) {
+                distanceToY=(from.y-top);
+            }
+		else {
+                distanceToY=(bottom-from.y);
+            }
 
 		// which one is closer, paddle or a wall
 		if((distanceToX/Math.abs(from.xVel))<(distanceToY/Math.abs(from.yVel))) {
@@ -159,9 +163,9 @@ public class FuturePathPredictionVisualizer extends Game {
 		wrappedGame.setRTTEstimator(rttEstimator);
 	}
 
-	@Override
-	public int getPoints() {
-		return wrappedGame.getPoints();
+ 	@Override
+	public Statistics getStatistics() {
+		return wrappedGame.getStatistics();
 	}
 
 }
