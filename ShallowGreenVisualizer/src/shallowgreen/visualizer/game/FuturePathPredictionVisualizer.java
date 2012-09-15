@@ -88,7 +88,8 @@ private static int fjonga=0;
 			top=update.getBallRadius()*2;
 			// official visualizer is 479px high which is 1px less than this.
 			bottom=update.getFieldMaxHeight();
-			left=update.getPaddleWidth();
+			// visually inspected; seems to be a ball between the bat and the hit area
+			left=update.getPaddleWidth()+update.getBallRadius()*2;
 			right=update.getFieldMaxWidth()-update.getPaddleWidth();
 			return;
 		}
