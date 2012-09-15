@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import shallowgreen.Connection;
 import shallowgreen.Game;
+import shallowgreen.Statistics;
 import shallowgreen.message.GameIsOnMessage;
 import shallowgreen.message.GameIsOverMessage;
 import shallowgreen.message.GameStartedMessage;
