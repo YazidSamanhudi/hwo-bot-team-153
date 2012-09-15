@@ -52,6 +52,13 @@
 		</svg>
 	</div>
 </div>
+<!--
+<div id="speedScatter" style="position: absolute; top: 0px; left: 0px; width: 100px; height: 100px; margin: 8px; margin-top: 0px; padding: 0px">
+	<svg id="ss" width="256px" height="150px" viewbox="0 0 256 150">
+		<rect id="ssborders" x="0" y="0" width="256" height="150" style="stroke-width: 1; stroke: red; fill: none;"></rect>
+	</svg>
+</div>
+-->
 
 <script type='text/javascript'>
 if(!window.WebSocket) {
@@ -91,7 +98,11 @@ ws.onmessage=function(msg) {
 			e=$(command.id);
 			if(e==null) {
 				e=createSVG(command.tag,command.id,command.attrs);
-				$('fieldArea').appendChild(e);
+				if(command.target==null) {
+					$('fieldArea').appendChild(e);
+				} else {
+					$(command.target).appendChild(e);
+				}
 			} else {
 				updateSVGAttrs(e,command.attrs);
 			}
