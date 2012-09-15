@@ -131,8 +131,4 @@ public class PetGame extends Game {
 	public void setRTTEstimator(RTT rttEstimator) {
 	}
 	
-	@Override
-	public int getPoints() {
-		return 0;
-	}
 }

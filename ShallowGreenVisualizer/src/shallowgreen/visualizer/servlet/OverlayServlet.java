@@ -27,9 +27,12 @@ public class OverlayServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		response.setContentType("text/html");
 		response.setCharacterEncoding("UTF-8");
-		// FIXME: most definitely far from effecient
+		// FIXME: most definitely far from efficient
 		BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(response.getOutputStream()));
 		String page=readFile("overlay.html");
+                if (page == null)  {
+                    System.err.println("HALP! overlay.html is null :(");
+                }
 		bw.write(page.replace("___IFRAMEURL___",Visualizer.gameURL));
 		bw.flush();
 		bw.close();

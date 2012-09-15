@@ -134,8 +134,8 @@ public class ServerUpdateVisualizer extends Game {
 	}
 
 	@Override
-	public int getPoints() {
-		return wrappedGame.getPoints();
+	public Statistics getStatistics() {
+		return wrappedGame.getStatistics();
 	}
 
 }
