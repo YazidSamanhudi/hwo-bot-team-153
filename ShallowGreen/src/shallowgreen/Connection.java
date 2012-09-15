@@ -37,6 +37,7 @@ public class Connection implements Runnable {
 	private int gamesPlayed = 0;
 	private int gamesWon = 0;
 	private GameFactory gameFactory;
+	private Statistics stats;
 
 	@SuppressWarnings("unused")
 	private Connection() {
@@ -46,6 +47,7 @@ public class Connection implements Runnable {
 		this.name = name;
 		this.address = address;
 		this.gameFactory = gameFactory;
+		this.stats = new Statistics();
 		this.rttEstimator = new RTT(address);
 		new Thread(rttEstimator).start();
 	}
@@ -77,9 +79,15 @@ public class Connection implements Runnable {
 						game.handleMessage(message);
 					}
 					if (message.getMessageType() == Message.MessageType.GAME_IS_OVER) {
-						gamesPlayed += game.getStatistics().getGamesPlayed();
-						gamesWon += game.getStatistics().getGamesWon();
-						log.info("Stats for this bot: games played: {}, won {}, losses {}", new Object[]{gamesPlayed, gamesWon, (gamesPlayed - gamesWon)});
+						if (game.getStatistics().getGamesWon() == 1) { stats.gameWon(); } else { stats.gameLost(); }
+						gamesPlayed = stats.getGamesPlayed();
+						gamesWon = stats.getGamesWon();
+						stats.setMaxX(Math.max(stats.getMaxX(), game.getStatistics().getMaxX()));
+						stats.setMinX(Math.min(stats.getMinX(), game.getStatistics().getMinX()));
+						stats.setMaxY(Math.max(stats.getMaxY(), game.getStatistics().getMaxY()));
+						stats.setMinY(Math.min(stats.getMinY(), game.getStatistics().getMinY()));
+						
+						log.info("Stats for this bot: games played: {}, won {}, losses {}, X: ({}, {}), Y: ({}, {})", new Object[]{gamesPlayed, gamesWon, (gamesPlayed - gamesWon), stats.getMinX(), stats.getMaxX(), stats.getMinY(), stats.getMaxY()});
 						game = null;
 					}
 				}
