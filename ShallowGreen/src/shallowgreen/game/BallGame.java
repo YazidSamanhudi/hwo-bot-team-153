@@ -35,6 +35,7 @@ public class BallGame extends Game {
 	private double missiles = 0.0;
 	private RTT rttEstimator;
 	private BallPosition bpEstimator;
+	private Statistics stats;
 
 	@Override
 	public void update(Update update) {
@@ -48,6 +49,7 @@ public class BallGame extends Game {
 
 		if (firstUpdate) {
 			bpEstimator = new BallPosition();
+			stats = new Statistics(update);
 			missiles = update.getNrOfMissiles();
 			log.debug("Missiles: " + missiles + ", current RTT EMA: " + rttEstimator.getRTTmsEstimate());
 			if (!incoming) {
@@ -86,6 +88,7 @@ public class BallGame extends Game {
 //			if (!incoming && prevAngle != ballAngle) {
 //				paddleTarget = bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity);
 //			}
+				stats.updatePositionStats(update);
 		}
 
 		// safety one pixel
@@ -138,10 +141,9 @@ public class BallGame extends Game {
 		return !(angle < (Math.PI / 2) && angle > (Math.PI / -2));
 	}
 
-
 	@Override
-	public int getPoints() {
-		return gamesWon;
+	public Statistics getStatistics() {
+		return stats;
 	}
 	
 	@Override
@@ -152,8 +154,10 @@ public class BallGame extends Game {
 	@Override
 	public void gameIsOver(String winner) {
 		if (winner.equalsIgnoreCase(myName)) {
-			gamesWon++;
-		} 
+			stats.gameWon();
+		} else {
+			stats.gameLost();
+		}
 	}
 	
 	@Override

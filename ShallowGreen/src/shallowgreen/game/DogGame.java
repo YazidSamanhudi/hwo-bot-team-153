@@ -73,9 +73,4 @@ public class DogGame extends Game {
 	public void setRTTEstimator(RTT rttEstimator) {
 	}
 
-	@Override
-	public int getPoints() {
-		return 0;
-	}
-
 }
