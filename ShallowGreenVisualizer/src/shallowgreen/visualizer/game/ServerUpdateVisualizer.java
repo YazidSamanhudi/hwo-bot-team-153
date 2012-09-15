@@ -77,7 +77,6 @@ public class ServerUpdateVisualizer extends Game {
 		).toString());
 
 		// left paddle
-		Visualizer.broadcastMessage(VisualMessageTool.removeMessage("left").toString());
 		Visualizer.broadcastMessage(VisualMessageTool.updateMessage("rect","left","class","srvu"
 						,"x","0"
 						,"y",update.getLeftY()
@@ -87,7 +86,6 @@ public class ServerUpdateVisualizer extends Game {
 
 
 		// right paddle
-		Visualizer.broadcastMessage(VisualMessageTool.removeMessage("right").toString());
 		Visualizer.broadcastMessage(VisualMessageTool.updateMessage("rect","right","class","srvu"
 						,"x",(update.getFieldMaxWidth()-update.getPaddleWidth())
 						,"y",update.getRightY()
@@ -97,11 +95,6 @@ public class ServerUpdateVisualizer extends Game {
 
 		// ball trail
 		if(previousUpdate!=null) {
-			// clean out trail
-			if(ballPath[ballPathIndex]!=null) {
-				Visualizer.broadcastMessage(VisualMessageTool.removeMessage(ballPath[ballPathIndex]).toString());
-				Visualizer.broadcastMessage(VisualMessageTool.removeMessage(ballPath[ballPathIndex]+"Loc").toString());
-			}
 			// trail from previous update
 			ballPath[ballPathIndex]="ballPath"+ballPathIndex;
 			Visualizer.broadcastMessage(VisualMessageTool.updateMessage("line",ballPath[ballPathIndex],"class","srvutr"
