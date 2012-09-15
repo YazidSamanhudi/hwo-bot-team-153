@@ -77,6 +77,8 @@ public class FuturePathPredictionVisualizer extends Game {
 		private double yVel;
 	}
 
+private static int fjonga=0;
+
 	@Override
 	public void update(Update update) {
 		if(previousUpdate==null) {
@@ -108,6 +110,18 @@ public class FuturePathPredictionVisualizer extends Game {
 		now.xVel=update.getBallX()-previousUpdate.getBallX();
 		now.yVel=update.getBallY()-previousUpdate.getBallY();
 
+// special rendering of first updates to visualize the spin
+if(fjonga++<8) {
+	BallStatus next=calculateNext(now);
+	Visualizer.broadcastMessage(VisualMessageTool.updateMessage("line","futuretunkki"+fjonga,"class","pretr"
+					,"x1",now.x
+					,"y1",now.y
+					,"x2",next.x
+					,"y2",next.y
+					,"style","stroke: green; stroke-opacity: 0.3;"
+	).toString());
+}
+
 		for(int i=0; i<7; i++) {
 			BallStatus next=calculateNext(now);
 			Visualizer.broadcastMessage(VisualMessageTool.updateMessage("line","future"+i,"class","pretr"
@@ -137,7 +151,7 @@ public class FuturePathPredictionVisualizer extends Game {
 		else // going down
 			distanceToY=(bottom-from.y);
 
-		// which one is closer, paddle or a wall
+		// which one is closer, a paddle (x) or a wall (y)
 		if((distanceToX/Math.abs(from.xVel))<(distanceToY/Math.abs(from.yVel))) {
 			// we are hitting a paddle
 			double yTravel=(distanceToX/Math.abs(from.xVel))*Math.abs(from.yVel);
@@ -159,11 +173,13 @@ public class FuturePathPredictionVisualizer extends Game {
 
 	@Override
 	public void gameIsOver(String winner) {
+		// unused - see handleMessage
 	}
 
 	@Override
 	public void gameStarted(List<String> players) {
 		// unused - see handleMessage
+fjonga=0;
 	}
 
 	@Override
