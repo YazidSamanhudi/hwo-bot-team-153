@@ -89,13 +89,13 @@ public class BallPosition {
 	private void simulateOutbound(Update update, double xVel, double yVel) {
 
 		// Until we hit end of field, add yVel to Y-value and xVel to X-value
-		while (simX < update.getFieldMaxWidth() - update.getPaddleWidth() && iterations < MAX_ITER) {
+		while (simX < update.getFieldMaxWidth() && iterations < MAX_ITER) {
 			simX += xVel;      // Move simulated ball
 			simY += yVel;      // in both X- and Y-directions
-			if (simY < 0) {    // If simulated ball hits bottom, 
+			if (simY < update.getBallRadius()) {    // If simulated ball hits bottom, 
 				yVel *= -1.0d;   // switch y-direction and 
 				simY *= -1.0d;   // make negative position positive (bring ball back to field)
-			} else if (simY > update.getFieldMaxHeight()) {  // If it hits roof,
+			} else if (simY > update.getFieldMaxHeight() - update.getBallRadius()) {  // If it hits roof,
 				yVel *= -1.0d;                                 // calculate distance by which roof was exceeded and bring back that amount
 				simY = update.getFieldMaxHeight() - (simY - update.getFieldMaxHeight());
 			}
@@ -119,13 +119,13 @@ public class BallPosition {
 	private void simulateInbound(Update update, double xVel, double yVel) {
 		
 		// For as long as the ball has not reached our end of field
-		while (simX > 0 && iterations < MAX_ITER) {
+		while (simX > update.getBallRadius() && iterations < MAX_ITER) {
 			simX += xVel;
 			simY += yVel;
 			if (simY < 0) {   // SEE COMMENTS ON simulateOutbound()
 				yVel *= -1.0d;
 				simY *= -1.0d;
-			} else if (simY > update.getFieldMaxHeight()) {
+			} else if (simY > update.getFieldMaxHeight() - update.getBallRadius()) {
 				yVel *= -1.0d;
 				simY = update.getFieldMaxHeight() - (simY - update.getFieldMaxHeight());
 			}
