@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Update {
 
+	private long receiveTime=System.currentTimeMillis();
 	private long time;
 	private Player left;
 	private Player right;
@@ -11,6 +12,10 @@ public class Update {
 	private double nrOfMissiles;
 	@JsonProperty("conf")
 	private Field field;
+
+	public long getReceiveTime() {
+		return receiveTime;
+	}
 
 	public long getTime() {
 		return time;
