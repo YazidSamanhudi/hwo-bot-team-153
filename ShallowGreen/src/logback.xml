@@ -12,6 +12,7 @@
 	<logger name="shallowgreen.Connection" level="INFO"/>
 	<logger name="shallowgreen.predictor.RTT" level="INFO"/>
 	<logger name="shallowgreen.game.PetGame" level="INFO"/>
+	<logger name="shallowgreen.game.BallGame" level="INFO"/>
 <!--
 -->
 	

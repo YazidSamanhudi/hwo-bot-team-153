@@ -88,9 +88,10 @@ public class FuturePathPredictionVisualizer extends Game {
 			// top seems to bounce too early
 			top = update.getBallRadius() * 2;
 			// official visualizer is 479px high which is 1px less than this.
-			bottom = update.getFieldMaxHeight();
-			left = update.getPaddleWidth();
-			right = update.getFieldMaxWidth() - update.getPaddleWidth();
+			bottom=update.getFieldMaxHeight();
+			// visually inspected; seems to be a ball between the bat and the hit area
+			left=update.getPaddleWidth()+update.getBallRadius()*2;
+			right=update.getFieldMaxWidth()-update.getPaddleWidth();
 			return;
 		}
 
