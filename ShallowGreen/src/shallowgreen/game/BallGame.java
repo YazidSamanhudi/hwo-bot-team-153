@@ -1,6 +1,7 @@
 package shallowgreen.game;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ public class BallGame extends Game {
 	private RTT rttEstimator;
 	private BallPosition bpEstimator;
 	private Statistics stats;
-	double degAngle, prevDegAngle, incomingAngle, outgoingAngle;
+	double degAngle, prevDegAngle, incomingAngle, outgoingAngle, prevPt;
 	
 
 	@Override
@@ -83,7 +84,13 @@ public class BallGame extends Game {
 			incoming = ballIsIncoming(ballAngle);
 
 //			if (incoming && prevAngle != ballAngle) {
-			paddleTarget = bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity);
+			if (incoming) {
+				paddleTarget = round(bpEstimator.testMySide(update, ballXVelocity, ballYVelocity));
+			}
+			if (prevPt != paddleTarget) {
+				log.info("simY = {}", paddleTarget);
+				prevPt = paddleTarget;
+			}
 //			}
 
 //			if (!incoming && prevAngle != ballAngle) {
@@ -91,11 +98,11 @@ public class BallGame extends Game {
 //			}
 			stats.updateStatistics(update, rttEstimator.getRTTmsEstimate());
 //		  log.info("receiveTime: {}, game time: {}", update.getReceiveTime(), update.getTime());
-			log.info("{}", stats);
+//			log.info("{}", stats);
 		}
 
 		// safety one pixel
-		double deadZone = (update.getPaddleHeight() / 2) - 2.0d + update.getBallRadius();
+		double deadZone = (update.getPaddleHeight() / 2) - 2.0d;
 		double yDiff = paddleTarget - myCurrentPosition.getY() - (update.getPaddleHeight() / 2);
 		ChangeDirMessage cdm = null;
 		if (yDiff > deadZone && speed <= 0.0d) {
@@ -181,4 +188,8 @@ public class BallGame extends Game {
 		}
 	}
 	
+	private double round(double d) {
+		DecimalFormat oneDForm = new DecimalFormat("#.#");
+		return Double.valueOf(oneDForm.format(d));
+	}
 }

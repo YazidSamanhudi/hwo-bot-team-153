@@ -4,6 +4,9 @@
  */
 package shallowgreen.predictor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import shallowgreen.game.BallGame;
 import shallowgreen.model.Update;
 
 /**
@@ -12,12 +15,13 @@ import shallowgreen.model.Update;
  */
 public class BallPosition {
 
+	private static final Logger log = LoggerFactory.getLogger(BallGame.class);
 	private final int MAX_ITER = 999999;  // simulate at most this many steps long ball travel
-  private int iterations = 0;           // completed iterations on this leg (in- or outbound)
+	private int iterations = 0;           // completed iterations on this leg (in- or outbound)
 	private double simX;                  // simulated ball Y position
 	private double simY;                  // simulated ball Y position
 	private double angle;                 // ball angle, to determine direction
-	
+
 	public BallPosition() {
 	}
 
@@ -34,9 +38,9 @@ public class BallPosition {
 	 * opponent paddle
 	 */
 	public double nextMySide(Update update, double xVel, double yVel) {
-		
+
 		setStartParameters(update, xVel, yVel); // figure out position and direction
-		
+
 		if (incoming(angle)) {
 			simulateInbound(update, xVel, yVel);
 		} else {
@@ -59,7 +63,6 @@ public class BallPosition {
 	 * @return Estimated Y-position where ball will land when it bounces from
 	 * opponent paddle
 	 */
-
 	public double nextEnemySide(Update update, double xVel, double yVel) {
 
 		setStartParameters(update, xVel, yVel); // figure out position and direction
@@ -74,11 +77,11 @@ public class BallPosition {
 	}
 
 	/**
-	 * 
-	 * Simulate ball traveling outwards from out paddle. Changes
-	 * class' internal state to reflect ball position on enemy paddle line
-	 * as the ball traverses towards it in straight line.
-	 * 
+	 *
+	 * Simulate ball traveling outwards from out paddle. Changes class' internal
+	 * state to reflect ball position on enemy paddle line as the ball traverses
+	 * towards it in straight line.
+	 *
 	 * @param update Message from server, contains data such as ball position,
 	 * field size, paddle positions
 	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
@@ -104,11 +107,11 @@ public class BallPosition {
 	}
 
 	/**
-	 * 
-	 * Simulate ball traveling towards our paddle. Changes
-	 * class' internal state to reflect ball position on our paddle line
-	 * as the ball traverses towards us in straight line.
-	 * 
+	 *
+	 * Simulate ball traveling towards our paddle. Changes class' internal state
+	 * to reflect ball position on our paddle line as the ball traverses towards
+	 * us in straight line.
+	 *
 	 * @param update Message from server, contains data such as ball position,
 	 * field size, paddle positions
 	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
@@ -117,7 +120,7 @@ public class BallPosition {
 	 * Y-direction (per time unit)
 	 */
 	private void simulateInbound(Update update, double xVel, double yVel) {
-		
+
 		// For as long as the ball has not reached our end of field
 		while (simX > update.getBallRadius() && iterations < MAX_ITER) {
 			simX += xVel;
@@ -137,9 +140,17 @@ public class BallPosition {
 		return !(angle < (Math.PI / 2) && angle > (Math.PI / -2));
 	}
 
+	private boolean downward(double angle) {
+		return (angle < 0);
+	}
+
+	private boolean upward(double angle) {
+		return (angle > 0);
+	}
+
 	/**
 	 * Set instance variables to reflect playfield state. Initialization routine.
-	 * 
+	 *
 	 * @param update Message from server, contains data such as ball position,
 	 * field size, paddle positions
 	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
@@ -152,5 +163,53 @@ public class BallPosition {
 		this.simY = update.getBallY();       // simulated ball start Y position
 		this.angle = Math.atan2(yVel, xVel); // figure out direction
 		this.iterations = 0;
+	}
+
+	public double testMySide(Update update, double xVel, double yVel) {
+		setStartParameters(update, xVel, yVel);
+		nextY(update, xVel, yVel);
+		return simY;
+	}
+
+	private void nextY(Update update, double xVel, double yVel) {
+		double preSimY;
+		double top = update.getBallRadius();
+		double left = update.getPaddleWidth();
+		double ySpace = update.getFieldMaxHeight() - update.getBallRadius() * 2;
+		double dy;
+
+		if (incoming(angle)) {
+			dy = (yVel / (-1.0 * xVel));
+			preSimY = dy * (update.getBallX() - left) + update.getBallY();
+		} else {
+			dy = (yVel / xVel);
+			preSimY = dy * (update.getFieldMaxWidth() - update.getBallX()) + update.getBallY();
+		}
+		if (preSimY < top) {
+			int bounces = Math.abs((int) (preSimY / ySpace)) + 1; // round down
+			if (bounces % 2 == 1) {
+				simY = (ySpace + top) - (preSimY + (bounces * ySpace)) + top;
+				log.debug("nextY: preSimY < top, odd bounces, simY now: {}.", simY);
+				return;
+			} else {
+				simY = preSimY + (bounces * ySpace) + top;
+				log.debug("nextY: preSimY < top, even bounces, simY now: {}.", simY);
+				return;
+			}
+		}
+		if (preSimY > ySpace + top) {
+			int bounces = (int) (preSimY / ySpace); // round down
+			if (bounces % 2 == 1) {
+				simY = (ySpace + top) - (preSimY - bounces * ySpace) + top;
+				log.debug("nextY: preSimY was > field_height, odd bounces, simY now: {}.", simY);
+				return;
+			} else {
+				simY = preSimY - bounces * ySpace + top;
+				log.debug("nextY: preSimY was > field_height, even bounces, simY now: {}.", simY);
+				return;
+			}
+		}
+		simY = preSimY;
+		log.debug("nextY: no bounce, dy: {}, simY = {}, ballX: {}, ballY: {}.", new Object[]{dy, simY, update.getBallX(), update.getBallY()});
 	}
 }

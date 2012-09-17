@@ -34,6 +34,7 @@ public class Statistics {
 	public Statistics() {
 	}
 	
+	// When initialized, put first received update twice into ring buffer arrays
 	public Statistics(Update update) {
 		updates[0] = update;
 		jitter[0] = 0;
@@ -92,6 +93,7 @@ public class Statistics {
 		counter++;
 	}
 
+	@Override
 	public String toString() {
 		int updatesAvailable = Math.min(UPDATES_TO_KEEP, counter);
 		long minJitter = 999999, avgJitter = 0, maxJitter = 0;		
