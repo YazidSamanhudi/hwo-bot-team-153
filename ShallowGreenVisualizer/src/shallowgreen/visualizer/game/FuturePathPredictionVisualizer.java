@@ -71,13 +71,21 @@ public class FuturePathPredictionVisualizer extends Game {
 	private double left;
 	private double right;
 
-	private static class BallStatus {
+	private static enum Hit {
+		TOP,
+		BOTTOM,
+		LEFT,
+		RIGHT
+	}
 
+	private static class BallStatus {
 		private double x;
 		private double y;
 		private double xVel;
 		private double yVel;
+		private Hit hit;
 	}
+
 	private static int fjonga = 0;
 
 	@Override
@@ -152,6 +160,10 @@ public class FuturePathPredictionVisualizer extends Game {
 			double yTravel = (distanceToX / Math.abs(from.xVel)) * Math.abs(from.yVel);
 			to.x = from.xVel < 0.0d ? from.x - distanceToX : from.x + distanceToX;
 			to.y = from.yVel < 0.0d ? from.y - yTravel : from.y + yTravel;
+			if(from.xVel<0.0d)
+				to.hit=Hit.LEFT;
+			else
+				to.hit=Hit.RIGHT;
 			to.xVel = from.xVel * -1.0d;
 			to.yVel = from.yVel;
 		} else {
@@ -159,6 +171,10 @@ public class FuturePathPredictionVisualizer extends Game {
 			double xTravel = (distanceToY / Math.abs(from.yVel)) * Math.abs(from.xVel);
 			to.x = from.xVel < 0.0d ? from.x - xTravel : from.x + xTravel;
 			to.y = from.yVel < 0.0d ? from.y - distanceToY : from.y + distanceToY;
+			if(from.yVel<0.0d)
+				to.hit=Hit.TOP;
+			else
+				to.hit=Hit.BOTTOM;
 			to.xVel = from.xVel;
 			to.yVel = from.yVel * -1.0d;
 		}
