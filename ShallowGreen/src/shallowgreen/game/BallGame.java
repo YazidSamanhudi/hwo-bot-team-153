@@ -51,7 +51,7 @@ public class BallGame extends Game {
 		Player myCurrentPosition = update.getLeft();
 
 		if (firstUpdate) {
-			rttEstimator.stop();
+//			rttEstimator.stop();
 			bpEstimator = new BallPosition();
 			stats = new Statistics(update);
 			missiles = update.getNrOfMissiles();
@@ -89,7 +89,9 @@ public class BallGame extends Game {
 //			if (!incoming && prevAngle != ballAngle) {
 //				paddleTarget = bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity);
 //			}
-			stats.updatePositionStats(update);
+			stats.updateStatistics(update, rttEstimator.getRTTmsEstimate());
+//		  log.info("receiveTime: {}, game time: {}", update.getReceiveTime(), update.getTime());
+			log.info("{}", stats);
 		}
 
 		// safety one pixel

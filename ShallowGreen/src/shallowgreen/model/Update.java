@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Update {
 
-	private long receiveTime=System.currentTimeMillis();
+	private long receiveTime = (System.nanoTime() / 1000000);
 	private long time;
 	private Player left;
 	private Player right;

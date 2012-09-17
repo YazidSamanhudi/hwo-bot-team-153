@@ -12,20 +12,35 @@ import shallowgreen.model.Update;
  */
 public class Statistics {
 
+	private final char UPDATES_TO_KEEP = 100;
+	private int counter = 0;
 	private int gamesWon = 0;
 	private int gamesPlayed = 0;
 	private double minX = 100;
 	private double maxX = 0;
 	private double minY = 100;
 	private double maxY = 0;
-
-	public Statistics(Update update) {
-		updatePositionStats(update);
-	}
-
+	private double enemyPaddleSpeed = 0;
+	private double enemyPaddleDirection = 0;
+	private double enemyPaddlePosition;
+	private long[] jitter = new long[UPDATES_TO_KEEP];
+	private long jitterLast = 0;
+	private double[] rtts = new double[UPDATES_TO_KEEP];
+	private double rttLast = 0;
+	private long[] dt = new long[UPDATES_TO_KEEP];
+	private long dtLast = 0;
+	private Update[] updates = new Update[UPDATES_TO_KEEP];
+	
 	public Statistics() {
 	}
-
+	
+	public Statistics(Update update) {
+		updates[0] = update;
+		jitter[0] = 0;
+		counter++;
+		updateStatistics(update, 0.0);
+	}
+	
 	public int getGamesWon() {
 		return gamesWon;
 	}
@@ -59,21 +74,40 @@ public class Statistics {
 		this.gamesPlayed += 1;
 	}
 
-	public final void updatePositionStats(Update update) {
-		this.setMinX(Math.min(this.minX, update.getBallX()));
-		this.setMaxX(Math.max(this.maxX, update.getBallX()));
-		this.setMinY(Math.min(this.minY, update.getBallY()));
-		this.setMaxY(Math.max(this.maxY, update.getBallY()));
+	public final void updateStatistics(Update update, double rtt) {
+		int curr = (counter % UPDATES_TO_KEEP);
+		int prev = ((counter - 1) % UPDATES_TO_KEEP);
+		updates[curr] = update;
+		rtts[curr] = rtt;
+		rttLast = rtt;
+		dtLast = updates[curr].getReceiveTime() - updates[prev].getReceiveTime();
+		dt[curr] = dtLast;
+		setMinX(Math.min(minX, update.getBallX()));
+		setMaxX(Math.max(maxX, update.getBallX()));
+		setMinY(Math.min(minY, update.getBallY()));
+		setMaxY(Math.max(maxY, update.getBallY()));
+		enemyPaddlePosition = update.getRightY();
+		jitter[curr] = dtLast - (updates[curr].getTime() - updates[prev].getTime());
+		jitterLast = jitter[curr];
+		counter++;
 	}
 
 	public String toString() {
-		return "Games played: " + gamesPlayed
-						+ ", games won: " + gamesWon
-						+ ", games lost: " + (gamesPlayed - gamesWon)
-						+ ", minX: " + String.format("%3.2f", minX)
+		int updatesAvailable = Math.min(UPDATES_TO_KEEP, counter);
+		long minJitter = 999999, avgJitter = 0, maxJitter = 0;		
+		for (int i = 0; i < updatesAvailable; i++) {
+			minJitter = Math.min(jitter[i], minJitter);
+			maxJitter = Math.max(jitter[i], maxJitter);
+			avgJitter += jitter[i];
+		}
+		avgJitter /= updatesAvailable;
+		return "minX: " + String.format("%3.2f", minX)
 						+ ", maxX: " + String.format("%3.2f", maxX)
 						+ ", minY: " + String.format("%3.2f", minY)
-						+ ", maxY: " + String.format("%3.2f", maxY) + "\n";
+						+ ", maxY: " + String.format("%3.2f", maxY)
+						+ ", RTT: " + String.format("%3.2f", rttLast)
+						+ ", dt: " + String.format("%3d", dtLast)
+						+ ", jitter now/min/avg/max: " + String.format("%d", jitterLast) + "/" + String.format("%d", minJitter) + "/" + String.format("%d", avgJitter) +"/" + String.format("%d", maxJitter) + " ms";
 	}
 
 	/**
