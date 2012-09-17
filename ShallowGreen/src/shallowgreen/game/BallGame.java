@@ -7,6 +7,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+
 import shallowgreen.Game;
 import shallowgreen.Statistics;
 import shallowgreen.message.ChangeDirMessage;
@@ -175,6 +178,18 @@ public class BallGame extends Game {
 	public void gameStarted(List<String> players) {
 		myName = players.get(0);
 		log.info("New game. Players: {}", players);
+//try {
+//	connection.sendMessage(new ChangeDirMessage(1.0d));
+//} catch(JsonGenerationException e) {
+//	// TODO Auto-generated catch block
+//	e.printStackTrace();
+//} catch(JsonMappingException e) {
+//	// TODO Auto-generated catch block
+//	e.printStackTrace();
+//} catch(IOException e) {
+//	// TODO Auto-generated catch block
+//	e.printStackTrace();
+//}
 	}
 
 	private void checkAngleChange(double ballAngle, double ballTravelDistance) {
@@ -190,7 +205,6 @@ public class BallGame extends Game {
 	}
 	
 	private double round(double d) {
-		DecimalFormat oneDForm = new DecimalFormat("#.#");
-		return Double.valueOf(oneDForm.format(d));
+		return ((double)Math.round(d*10.0d))/10.0d;
 	}
 }
