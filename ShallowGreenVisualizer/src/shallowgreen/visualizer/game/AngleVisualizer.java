@@ -139,7 +139,7 @@ public class AngleVisualizer extends Game {
 					final boolean isLeft=previousUpdate.getBallX()-update.getBallX()<0.0d;
 					final double inAngle=(intersection.y-(enterSameSlopeUpdate1.getBallY()+enterSameSlopeUpdate1.getBallRadius()))/(intersection.x-(enterSameSlopeUpdate1.getBallX()+enterSameSlopeUpdate1.getBallRadius()));
 					final double outAngle=(intersection.y-(previousUpdate.getBallY()+previousUpdate.getBallRadius()))/(intersection.x-(previousUpdate.getBallX()+previousUpdate.getBallRadius()));
-					if(intersection.y-(isLeft?previousUpdate.getLeftY():previousUpdate.getRightY())<=previousUpdate.getPaddleHeight())
+					if(intersection.y-(isLeft?previousUpdate.getLeftY():previousUpdate.getRightY())<=previousUpdate.getPaddleHeight() && intersection.y-(isLeft?previousUpdate.getLeftY():previousUpdate.getRightY())>0.0d)
 						log.debug("in,out,paddleHit,isLeft: {}\t{}\t{}\t{}",
 										inAngle
 										,outAngle
