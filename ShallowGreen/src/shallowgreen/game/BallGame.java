@@ -42,7 +42,6 @@ public class BallGame extends Game {
 	private BallPosition bpEstimator;
 	private Statistics stats;
 	double degAngle, prevDegAngle, incomingAngle, outgoingAngle, prevPt;
-	
 
 	@Override
 	public void update(Update update) {
@@ -86,26 +85,16 @@ public class BallGame extends Game {
 			checkAngleChange(ballAngle, ballTravelDistance);
 			incoming = ballIsIncoming(ballAngle);
 
-//			if (incoming && prevAngle != ballAngle) {
-//			if (incoming) {
-				paddleTarget = round(bpEstimator.testMySide(update, ballXVelocity, ballYVelocity));
-//			}
-				log.info("paddleTarget = {}", paddleTarget);
+			paddleTarget = round(bpEstimator.testMySide(update, ballXVelocity, ballYVelocity));
 			if (prevPt != paddleTarget) {
-//				log.info("simY = {}", paddleTarget);
+				log.info("paddleTarget = {}", paddleTarget);
 				prevPt = paddleTarget;
 			}
-//			}
-
-//			if (!incoming && prevAngle != ballAngle) {
-//				paddleTarget = bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity);
-//			}
 			stats.updateStatistics(update, rttEstimator.getRTTmsEstimate());
 //		  log.info("receiveTime: {}, game time: {}", update.getReceiveTime(), update.getTime());
 //			log.info("{}", stats);
 		}
 
-		// safety one pixel
 		double deadZone = (update.getPaddleHeight() / 2) - 2.0d;
 		double yDiff = paddleTarget - myCurrentPosition.getY() - (update.getPaddleHeight() / 2);
 		ChangeDirMessage cdm = null;
@@ -203,8 +192,8 @@ public class BallGame extends Game {
 			//       Aina ei ole 'varmaa' tietoa pomppukulmasta jos pallo lähes välittömästi pomppaa seinästä (kun ollaan lähellä kulmaa)
 		}
 	}
-	
+
 	private double round(double d) {
-		return ((double)Math.round(d*10.0d))/10.0d;
+		return ((double) Math.round(d * 10.0d)) / 10.0d;
 	}
 }

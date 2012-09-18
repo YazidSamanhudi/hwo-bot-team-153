@@ -21,6 +21,7 @@ public class BallPosition {
 	private double simX;                  // simulated ball Y position
 	private double simY;                  // simulated ball Y position
 	private double angle;                 // ball angle, to determine direction
+	private double top, left, right, ySpace, preSimY;
 
 	public BallPosition() {
 	}
@@ -140,14 +141,6 @@ public class BallPosition {
 		return !(angle < (Math.PI / 2) && angle > (Math.PI / -2));
 	}
 
-	private boolean downward(double angle) {
-		return (angle < 0);
-	}
-
-	private boolean upward(double angle) {
-		return (angle > 0);
-	}
-
 	/**
 	 * Set instance variables to reflect playfield state. Initialization routine.
 	 *
@@ -163,6 +156,10 @@ public class BallPosition {
 		this.simY = update.getBallY();       // simulated ball start Y position
 		this.angle = Math.atan2(yVel, xVel); // figure out direction
 		this.iterations = 0;
+		top = update.getBallRadius();
+		left = update.getPaddleWidth();
+		right = update.getFieldMaxWidth() - 2 * update.getPaddleWidth();
+		ySpace = update.getFieldMaxHeight() - update.getBallRadius() * 2;
 	}
 
 	public double testMySide(Update update, double xVel, double yVel) {
@@ -172,44 +169,62 @@ public class BallPosition {
 	}
 
 	private void nextY(Update update, double xVel, double yVel) {
-		double preSimY;
-		double top = update.getBallRadius();
-		double left = update.getPaddleWidth();
-		double ySpace = update.getFieldMaxHeight() - update.getBallRadius() * 2;
 		double dy;
+		int bounces = 0;
+		double tempBallX, tempBallY;
 
 		if (incoming(angle)) {
 			dy = (yVel / (-1.0 * xVel));
 			preSimY = dy * (update.getBallX() - left) + update.getBallY();
+			handleBounce();
+			log.debug("nextY incoming: dy: {}, preSimY = {}, ballX: {}, ballY: {}.", new Object[]{dy, preSimY, update.getBallX(), update.getBallY()});
+			simY = preSimY;
 		} else {
 			dy = (yVel / xVel);
-			preSimY = dy * (update.getFieldMaxWidth() - update.getBallX()) + update.getBallY();
+			preSimY = dy * (right - update.getBallX()) + update.getBallY();
+			log.debug("nextY outgoing1: dy: {}, preSimY = {}, ballX: {}, ballY: {}.", new Object[]{dy, preSimY, update.getBallX(), update.getBallY()});
+			handleBounce();
+			tempBallX = update.getBallX();
+			tempBallY = update.getBallY();
+			update.getBall().getPosition().setX(right);
+			update.getBall().getPosition().setY(preSimY);
+			log.debug("nextY outgoing2: dy: {}, preSimY = {}, ballX: {}, ballY: {}.", new Object[]{dy, preSimY, update.getBallX(), update.getBallY()});
+			testMySide(update, (-1.0 * xVel), ((bounces % 2 == 1) ? (-1.0 * yVel) : yVel));
+			update.getBall().getPosition().setX(tempBallX);
+			update.getBall().getPosition().setY(tempBallY);
+			log.debug("nextY outgoing3: dy: {}, preSimY = {}, ballX: {}, ballY: {}.", new Object[]{dy, preSimY, update.getBallX(), update.getBallY()});
+			simY = preSimY;
 		}
+	
+		//	log.info("nextY predict: dy: {}, simY = {}, ballX: {}, ballY: {}.", new Object[]{dy, simY, update.getBallX(), update.getBallY()});
+	}
+
+	private int handleBounce() {
+		int bounces = 0;
 		if (preSimY < top) {
-			int bounces = Math.abs((int) (preSimY / ySpace)) + 1; // round down
+			bounces = Math.abs((int) (preSimY / ySpace)) + 1; // round down, then add one
 			if (bounces % 2 == 1) {
-				simY = (ySpace + top) - (preSimY + (bounces * ySpace)) + top;
+				preSimY = (ySpace + top) - (preSimY + (bounces * ySpace)) + top;
 				log.debug("nextY: preSimY < top, odd bounces, simY now: {}.", simY);
-				return;
+				return bounces;
 			} else {
-				simY = preSimY + (bounces * ySpace) + top;
+				preSimY = preSimY + (bounces * ySpace) + top;
 				log.debug("nextY: preSimY < top, even bounces, simY now: {}.", simY);
-				return;
+				return bounces;
 			}
 		}
 		if (preSimY > ySpace + top) {
-			int bounces = (int) (preSimY / ySpace); // round down
+			bounces = (int) (preSimY / ySpace); // round down
 			if (bounces % 2 == 1) {
-				simY = (ySpace + top) - (preSimY - bounces * ySpace) + top;
+				preSimY = (ySpace + top) - (preSimY - bounces * ySpace) + top;
 				log.debug("nextY: preSimY was > field_height, odd bounces, simY now: {}.", simY);
-				return;
+				return bounces;
 			} else {
-				simY = preSimY - bounces * ySpace + top;
+				preSimY = preSimY - bounces * ySpace + top;
 				log.debug("nextY: preSimY was > field_height, even bounces, simY now: {}.", simY);
-				return;
+				return bounces;
 			}
 		}
-		simY = preSimY;
-		log.debug("nextY: no bounce, dy: {}, simY = {}, ballX: {}, ballY: {}.", new Object[]{dy, simY, update.getBallX(), update.getBallY()});
+		return bounces;
 	}
 }
