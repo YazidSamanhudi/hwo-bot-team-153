@@ -125,7 +125,7 @@ public class AngleVisualizer extends Game {
 								update.getBallX() + update.getBallRadius(),
 								update.getBallY() + update.getBallRadius());
 				if (intersection != null) {
-					log.debug("Coordinates for edge: x = {}, y = {}", intersection.x, intersection.y);
+//					log.debug("Coordinates for edge: x = {}, y = {}", intersection.x, intersection.y);
 					Visualizer.broadcastMessage(VisualMessageTool.updateMessage("line","angleIn"+nextAngle,"class","not"
 									,"x1",intersection.x
 									,"y1",intersection.y
@@ -136,13 +136,16 @@ public class AngleVisualizer extends Game {
 									,"y1",intersection.y
 									,"x2",previousUpdate.getBallX()+previousUpdate.getBallRadius()
 									,"y2",previousUpdate.getBallY()+previousUpdate.getBallRadius()).toString());
-					boolean isLeft=previousUpdate.getBallX()-update.getBallX()<0.0d;
-					log.debug("in,out,paddleHit,isLeft: {}\t{}\t{}\t{}",
-									(intersection.y - (enterSameSlopeUpdate1.getBallY() + enterSameSlopeUpdate1.getBallRadius()))
-									/ (intersection.x - (enterSameSlopeUpdate1.getBallX() + enterSameSlopeUpdate1.getBallRadius())),
-									(intersection.y - (previousUpdate.getBallY() + previousUpdate.getBallRadius()))
-									/ (intersection.x - (previousUpdate.getBallX() + previousUpdate.getBallRadius()))
-									,intersection.y-(isLeft?previousUpdate.getLeftY():previousUpdate.getRightY()),isLeft);
+					final boolean isLeft=previousUpdate.getBallX()-update.getBallX()<0.0d;
+					final double inAngle=(intersection.y-(enterSameSlopeUpdate1.getBallY()+enterSameSlopeUpdate1.getBallRadius()))/(intersection.x-(enterSameSlopeUpdate1.getBallX()+enterSameSlopeUpdate1.getBallRadius()));
+					final double outAngle=(intersection.y-(previousUpdate.getBallY()+previousUpdate.getBallRadius()))/(intersection.x-(previousUpdate.getBallX()+previousUpdate.getBallRadius()));
+					if(intersection.y-(isLeft?previousUpdate.getLeftY():previousUpdate.getRightY())<=previousUpdate.getPaddleHeight())
+						log.debug("in,out,paddleHit,isLeft: {}\t{}\t{}\t{}",
+										inAngle
+										,outAngle
+										,intersection.y-(isLeft?previousUpdate.getLeftY():previousUpdate.getRightY())
+										,isLeft);
+					// housekeeping for the visualization graphics, only keep last 10
 					if (++nextAngle >= 10) {
 						nextAngle = 0;
 					}
