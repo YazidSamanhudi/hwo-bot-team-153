@@ -124,9 +124,8 @@ public class AngleVisualizer extends Game {
 								previousUpdate.getBallY() + previousUpdate.getBallRadius(),
 								update.getBallX() + update.getBallRadius(),
 								update.getBallY() + update.getBallRadius());
-				log.debug("Coordinates for edge: x = {}, y = {}", intersection.x, intersection.y);
 				if (intersection != null) {
-//					log.debug("intersection: {},{}",intersection.x,intersection.y);
+				log.debug("Coordinates for edge: x = {}, y = {}", intersection.x, intersection.y);
 					Visualizer.broadcastMessage(VisualMessageTool.updateMessage("line", "angleIn" + nextAngle, "class", "not", "x1", intersection.x, "y1", intersection.y, "x2", enterSameSlopeUpdate1.getBallX() + enterSameSlopeUpdate1.getBallRadius(), "y2", enterSameSlopeUpdate1.getBallY() + enterSameSlopeUpdate1.getBallRadius()).toString());
 					Visualizer.broadcastMessage(VisualMessageTool.updateMessage("line", "angleOut" + nextAngle, "class", "not", "x1", intersection.x, "y1", intersection.y, "x2", previousUpdate.getBallX() + previousUpdate.getBallRadius(), "y2", previousUpdate.getBallY() + previousUpdate.getBallRadius()).toString());
 					log.debug("in,out: {} {}",
