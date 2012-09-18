@@ -139,12 +139,23 @@ public class AngleVisualizer extends Game {
 					final boolean isLeft=previousUpdate.getBallX()-update.getBallX()<0.0d;
 					final double inAngle=(intersection.y-(enterSameSlopeUpdate1.getBallY()+enterSameSlopeUpdate1.getBallRadius()))/(intersection.x-(enterSameSlopeUpdate1.getBallX()+enterSameSlopeUpdate1.getBallRadius()));
 					final double outAngle=(intersection.y-(previousUpdate.getBallY()+previousUpdate.getBallRadius()))/(intersection.x-(previousUpdate.getBallX()+previousUpdate.getBallRadius()));
-					if(intersection.y-(isLeft?previousUpdate.getLeftY():previousUpdate.getRightY())<=previousUpdate.getPaddleHeight() && intersection.y-(isLeft?previousUpdate.getLeftY():previousUpdate.getRightY())>0.0d)
-						log.debug("in,out,paddleHit,isLeft: {}\t{}\t{}\t{}",
-										inAngle
-										,outAngle
-										,intersection.y-(isLeft?previousUpdate.getLeftY():previousUpdate.getRightY())
-										,isLeft);
+					double paddleHit = intersection.y - (isLeft ? previousUpdate.getLeftY() : previousUpdate.getRightY());
+					double paddleSpeed = 0;
+					
+					if (isLeft) {
+						paddleSpeed = (update.getLeftY() - previousUpdate.getLeftY()) / (update.getTime() - previousUpdate.getTime());
+					} else {
+						paddleSpeed = (update.getRightY() - previousUpdate.getRightY()) / (update.getTime() - previousUpdate.getTime());
+					}
+
+					if(0.0d < paddleHit && paddleHit <= previousUpdate.getPaddleHeight()) {
+						log.debug("in, out, paddleHit, isLeft, paddleSpeed (px/time): {}\t{}\t{}\t{}\t{}",
+										inAngle,
+										outAngle,
+										paddleHit,
+										isLeft,
+										paddleSpeed);
+					}
 					// housekeeping for the visualization graphics, only keep last 10
 					if (++nextAngle >= 10) {
 						nextAngle = 0;
