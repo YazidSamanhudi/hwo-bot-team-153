@@ -10,7 +10,7 @@ public class RequestDuelMessage extends Message {
 	}
 
 	public RequestDuelMessage(String[] names) {
-		names=names;
+		this.names=names;
 	}
 
 	public RequestDuelMessage(String myName, String opponentName) {
