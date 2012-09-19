@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 	property="msgType")
 @JsonSubTypes({
 	@Type(value=JoinMessage.class, name="join"),
+	@Type(value=RequestDuelMessage.class, name="requestDuel"),
 	@Type(value=JoinedMessage.class, name="joined"),
 	@Type(value=GameStartedMessage.class, name="gameStarted"),
 	@Type(value=GameIsOverMessage.class, name="gameIsOver"),
@@ -23,6 +24,7 @@ public abstract class Message {
 	public static enum MessageType {
 		UNKNOWN
 		,JOIN
+		,REQUEST_DUEL
 		,JOINED
 		,GAME_STARTED
 		,GAME_IS_OVER

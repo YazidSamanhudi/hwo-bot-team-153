@@ -31,7 +31,7 @@ public class Visualizer extends ShallowGreen {
 	}
 
 	@Override
-	protected Connection newConnection(String name, InetSocketAddress address, GameFactory gameFactory) {
+	protected Connection newConnection(String name, InetSocketAddress address, GameFactory gameFactory, String duelistName) {
 		// initialize the visualizer before returning the Connection
 		Server server=new Server(12765);
 
@@ -52,7 +52,7 @@ public class Visualizer extends ShallowGreen {
 			log.error("Failed to initialize the visualization server",e);
 		}
 
-		return new Connection(name,address,new VisualizerGameFactory(gameFactory));
+		return new Connection(name,address,new VisualizerGameFactory(gameFactory),duelistName);
 	}
 
 	public static void broadcastMessage(String message) {

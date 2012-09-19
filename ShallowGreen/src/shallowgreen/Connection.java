@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import shallowgreen.message.JoinMessage;
 import shallowgreen.message.Message;
+import shallowgreen.message.RequestDuelMessage;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -38,6 +39,7 @@ public class Connection implements Runnable {
 	private int gamesWon = 0;
 	private GameFactory gameFactory;
 	private Statistics stats;
+	private String duelistName;
 
 	@SuppressWarnings("unused")
 	private Connection() {
@@ -50,6 +52,11 @@ public class Connection implements Runnable {
 		this.stats = new Statistics();
 		this.rttEstimator = new RTT(address);
 		new Thread(rttEstimator).start();
+	}
+
+	public Connection(String name, InetSocketAddress address, GameFactory gameFactory, String duelistName) {
+		this(name,address,gameFactory);
+		this.duelistName=duelistName;
 	}
 
 	public void run() {
@@ -65,8 +72,13 @@ public class Connection implements Runnable {
 				Game game = null;
 
 				// tell the server we are here
-				JoinMessage joinMessage = new JoinMessage(name);
-				sendMessage(joinMessage);
+				if(duelistName!=null) {
+					RequestDuelMessage requestDuelMessage=new RequestDuelMessage(name,duelistName);
+					sendMessage(requestDuelMessage);
+				} else {
+					JoinMessage joinMessage = new JoinMessage(name);
+					sendMessage(joinMessage);
+				}
 
 				Message message;
 				while ((message = readMessage()) != null) {

@@ -10,6 +10,16 @@ public class ShallowGreen {
 	}
 
 	public void mainParser(String[] args) {
+		String duelistName=null;
+		if(args.length==4) {
+			if(isEmpty(args[3])) {
+				usageAndExit("ShallowGreen: duelist name was empty");
+			}
+			duelistName=args[3];
+			String[] newArgs=new String[3];
+			System.arraycopy(args,0,newArgs,0,newArgs.length);
+			args=newArgs;
+		}
 		if (args.length > 3 || args.length < 3 || isEmpty(args[0]) || isEmpty(args[1]) || isEmpty(args[2])) {
 			usageAndExit("ShallowGreen: Incorrect argument count ("+args.length+"!= 3) or given argument is empty.");
 		}
@@ -28,7 +38,7 @@ public class ShallowGreen {
 			usageAndExit("ShallowGreen: '"+args[1]+"' cannot be resolved as an address.");
 		}
 
-		Connection connection=newConnection(args[0],address,new GameFactory());
+		Connection connection=newConnection(args[0],address,new GameFactory(),duelistName);
 		connection.run();
 	}
 
@@ -42,12 +52,12 @@ public class ShallowGreen {
 	protected void usageAndExit(String message) {
 		if(message!=null)
 			System.err.println(message);
-		System.err.println("Usage: "+getClass().getSimpleName()+" [name] [host] [port]");
+		System.err.println("Usage: "+getClass().getSimpleName()+" [name] [host] [port] <duelopponent>");
 		System.exit(1);
 	}
 
-	protected Connection newConnection(String name, InetSocketAddress address, GameFactory gameFactory) {
-		return new Connection(name,address,new GameFactory());
+	protected Connection newConnection(String name, InetSocketAddress address, GameFactory gameFactory, String duelistName) {
+		return new Connection(name,address,new GameFactory(),duelistName);
 	}
 
 }
