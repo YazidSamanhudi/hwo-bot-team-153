@@ -1,5 +1,6 @@
 package shallowgreen.message;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RequestDuelMessage extends Message {
@@ -31,6 +32,7 @@ public class RequestDuelMessage extends Message {
 	}
 
 	/** shortcut/convenience to getNames()[0] */
+	@JsonIgnore
 	public String getMyName() {
 		if(names==null)
 			return null;
@@ -38,6 +40,7 @@ public class RequestDuelMessage extends Message {
 	}
 
 	/** shortcut/convenience to getNames()[0]=myName */
+	@JsonIgnore
 	public void setMyName(String myName) {
 		if(names==null)
 			names=new String[2];
@@ -45,6 +48,7 @@ public class RequestDuelMessage extends Message {
 	}
 
 	/** shortcut/convenience to getNames()[1] */
+	@JsonIgnore
 	public String getOpponentName() {
 		if(names==null)
 			return null;
@@ -52,6 +56,7 @@ public class RequestDuelMessage extends Message {
 	}
 
 	/** shortcut/convenience to getNames()[1]=myName */
+	@JsonIgnore
 	public void setOpponentName(String opponentName) {
 		if(names==null)
 			names=new String[2];

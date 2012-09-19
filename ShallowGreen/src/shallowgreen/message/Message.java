@@ -1,6 +1,7 @@
 package shallowgreen.message;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -33,6 +34,7 @@ public abstract class Message {
 		,ERROR
 	}
 
+	@JsonIgnore
 	public abstract MessageType getMessageType();
 
 }
