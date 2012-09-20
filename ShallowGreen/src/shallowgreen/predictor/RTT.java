@@ -12,16 +12,16 @@ import org.slf4j.LoggerFactory;
 /**
  *
  * @author dogo
- * 
- * Make a guesstimate about network conditions and RTT to game server.
- * Java does not have native bindings (outside some 3rd party JNI stuff)
- * for ICMP, so instead of ping, connect to game server TCP ports and
- * then close the connections.
- * 
- * The time it takes for the .connect() to return* is (empirically) very
- * close to ping results. The difference to ping results is often less
- * than 500 µs (0.5 milliseconds) and reflects the time it takes for the
- * game server to spawn new process and TCP socket.
+ *
+ * Make a guesstimate about network conditions and RTT to game server. Java does
+ * not have native bindings (outside some 3rd party JNI stuff) for ICMP, so
+ * instead of ping, connect to game server TCP ports and then close the
+ * connections.
+ *
+ * The time it takes for the .connect() to return* is (empirically) very close
+ * to ping results. The difference to ping results is often less than 500 µs
+ * (0.5 milliseconds) and reflects the time it takes for the game server to
+ * spawn new process and TCP socket.
  */
 public class RTT implements Runnable {
 
@@ -46,15 +46,16 @@ public class RTT implements Runnable {
 		long usecs = -1;
 		Socket socket;
 		log.info("RTT estimator thread running.");
+		if (rtt.isEmpty()) {
+			log.debug("RTT estimator: first time init.");
+			for (int i = 0; i < RTT_SAMPLE_COUNT; i++) {
+				rtt.add(usecs);
+			}
+			ema[0] = ema[1] = usecs;                                 // put first value to both EMA slots
+		}
+
 		while (running) {
 			try {
-				if (rtt.isEmpty()) {
-					log.debug("RTT estimator: first time init.");
-					for (int i = 0; i < RTT_SAMPLE_COUNT; i++) {
-						rtt.add(usecs);
-					}
-					ema[0] = ema[1] = usecs;                             // put first value to both EMA slots
-				}
 				socket = new Socket();                                 // socket needs to be remade every time after .close()
 				socket.setTcpNoDelay(true);                            // may or may not have any effect
 				start = System.nanoTime();                             // save start time nanoseconds
