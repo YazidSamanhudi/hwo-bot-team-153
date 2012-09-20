@@ -48,6 +48,13 @@ public class RTT implements Runnable {
 		log.info("RTT estimator thread running.");
 		while (running) {
 			try {
+				if (rtt.isEmpty()) {
+					log.debug("RTT estimator: first time init.");
+					for (int i = 0; i < RTT_SAMPLE_COUNT; i++) {
+						rtt.add(usecs);
+					}
+					ema[0] = ema[1] = usecs;                             // put first value to both EMA slots
+				}
 				socket = new Socket();                                 // socket needs to be remade every time after .close()
 				socket.setTcpNoDelay(true);                            // may or may not have any effect
 				start = System.nanoTime();                             // save start time nanoseconds
@@ -56,13 +63,6 @@ public class RTT implements Runnable {
 				usecs = (end - start) / 1000;                          // and measure time taken. Note that the .connect()
 				socket.close();                                        // seems to return right after it sends the last ACK
 				// and measured time is very close to ping results.
-				if (rtt.isEmpty()) {
-					log.debug("RTT estimator: first time init.");
-					for (int i = 0; i < 5; i++) {
-						rtt.add(usecs);
-					}
-					ema[0] = ema[1] = usecs;                             // put first value to both EMA slots
-				}
 
 			} catch (SocketTimeoutException ste) {
 				log.error("RTT estimator: socket.connect() timed out.");
