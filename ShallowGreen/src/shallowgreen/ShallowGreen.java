@@ -2,7 +2,25 @@ package shallowgreen;
 
 import java.net.InetSocketAddress;
 
+import org.slf4j.ILoggerFactory;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.LoggerContext;
+
 public class ShallowGreen {
+
+	static {
+		// before anything starts, add a Logback shutdown hook
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				ILoggerFactory ilf=LoggerFactory.getILoggerFactory();
+				if(ilf instanceof LoggerContext) {
+					((LoggerContext)ilf).stop();
+				}
+			}
+		});
+	}
 
 	public static void main(String[] args) {
 		ShallowGreen sg=new ShallowGreen();

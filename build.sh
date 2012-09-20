@@ -12,4 +12,12 @@ LOGBACK=logback-1.0.7/logback-classic-1.0.7.jar:logback-1.0.7/logback-core-1.0.7
 SLF4J=slf4j-1.7.0/slf4j-api-1.7.0.jar
 
 (cd "$WD"; javac -cp $SLF4J:$LOGBACK:$JACKSON -d build -encoding UTF-8 `find src -name "*.java" -type f -print`)
-cp "$WD/src/logback.xml" "$WD/build"
+cp "$WD/logback.xml" "$WD/build"
+
+if [ -f "$WD/log" ]; then
+	rm -f "$WD/log"
+fi
+
+if [ ! -x "$WD/log" ]; then
+	mkdir "$WD/log"
+fi

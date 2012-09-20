@@ -1,0 +1,40 @@
+<!-- This is the PRODUCTION logging configuration -->
+<configuration>
+	<property name="CONSOLEPATTERN" value="%7r %7.-7thread %-5level %-30logger{30}: %msg%n"/>
+	<property name="FILEPATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS}|%-7thread|%-5level|%-40logger|%msg%n"/>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>${CONSOLEPATTERN}</pattern>
+		</encoder>
+	</appender>
+
+	<timestamp key="fileTimestamp" datePattern="yyyyMMddHHmmss"/>
+
+	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+		<file>../log/shallowgreen-${fileTimestamp}.log</file>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>${FILEPATTERN}</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="ASYNCFILE" queueSize="2048" discardingThreshold="0" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="FILE"/>
+	</appender>
+
+	<logger name="org.eclipse" level="WARN"/>
+	<logger name="shallowgreen" level="DEBUG"/>
+<!--
+	<logger name="shallowgreen.Connection" level="WARN"/>
+	<logger name="shallowgreen.predictor.RTT" level="INFO"/>
+	<logger name="shallowgreen.game.PetGame" level="INFO"/>
+	<logger name="shallowgreen.game.BallGame" level="WARN"/>
+	<logger name="shallowgreen.Connection" level="INFO"/>
+	<logger name="shallowgreen.game.BallGame" level="INFO"/>
+-->
+	
+	<root level="DEBUG">
+		<appender-ref ref="ASYNCFILE"/>
+		<!--appender-ref ref="STDOUT"/-->
+	</root>
+</configuration>

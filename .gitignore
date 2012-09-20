@@ -1,5 +1,7 @@
 .DS_Store
+log
 ShallowGreen/.settings
+ShallowGreen/shallowgreen.pid
 ShallowGreen/build
 ShallowGreenVisualizer/.settings
 ShallowGreenVisualizer/build

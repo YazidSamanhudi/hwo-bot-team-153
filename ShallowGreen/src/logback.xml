@@ -1,3 +1,4 @@
+<!-- This is the DEVELOPMENT logging configuration -->
 <configuration>
 	<property name="CONSOLEPATTERN" value="%7r %7.-7thread %-5level %-30logger{30}: %msg%n"/>
 	<property name="FILEPATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS}|%-7thread|%-5level|%-40logger|%msg%n"/>
@@ -8,12 +9,15 @@
 		</encoder>
 	</appender>
 
+	<logger name="org.eclipse" level="WARN"/>
 	<logger name="shallowgreen" level="DEBUG"/>
 	<logger name="shallowgreen.Connection" level="INFO"/>
 	<logger name="shallowgreen.predictor.RTT" level="INFO"/>
 	<logger name="shallowgreen.game.PetGame" level="INFO"/>
 	<logger name="shallowgreen.game.BallGame" level="INFO"/>
 <!--
+	<logger name="shallowgreen.game.BallGame" level="WARN"/>
+	<logger name="shallowgreen.Connection" level="WARN"/>
 -->
 	
 	<root level="DEBUG">
