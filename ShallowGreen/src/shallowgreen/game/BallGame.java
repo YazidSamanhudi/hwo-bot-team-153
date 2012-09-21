@@ -107,7 +107,7 @@ public class BallGame extends Game {
 			cdm = new ChangeDirMessage(0.0d);
 			speed = 0.0d;
 		}
-
+// TODO: the deadZone-stuff is too lax, needs possibly another slower speed fine tune.
 		prevUpdate = update;
 		firstUpdate = false;
 
