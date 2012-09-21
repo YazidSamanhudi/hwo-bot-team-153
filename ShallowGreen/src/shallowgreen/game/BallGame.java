@@ -1,22 +1,16 @@
 package shallowgreen.game;
 
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-
 import shallowgreen.Game;
 import shallowgreen.Statistics;
 import shallowgreen.message.ChangeDirMessage;
 import shallowgreen.model.Player;
 import shallowgreen.model.Update;
-import shallowgreen.predictor.RTT;
 import shallowgreen.predictor.BallPosition;
+import shallowgreen.predictor.RTT;
 
 /**
  * put the paddle where the ball is
@@ -85,17 +79,22 @@ public class BallGame extends Game {
 			checkAngleChange(ballAngle, ballTravelDistance);
 			incoming = ballIsIncoming(ballAngle);
 
-			paddleTarget = round(bpEstimator.testMySide(update, ballXVelocity, ballYVelocity));
+			paddleTarget = round(bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity));
 			if (prevPt != paddleTarget) {
-				log.info("paddleTarget = {}", paddleTarget);
+				log.info("paddleTarget = {}, targetFarthest = {}", paddleTarget, round(bpEstimator.targetFarthest(update, ballXVelocity, ballYVelocity)));
 				prevPt = paddleTarget;
 			}
+//			if (incoming && update.getBallX() < 200) {
+			if (incoming) {
+				paddleTarget += bpEstimator.targetFarthest(update, ballXVelocity, ballYVelocity);
+			}
+
 			stats.updateStatistics(update, rttEstimator.getRTTmsEstimate());
 //		  log.info("receiveTime: {}, game time: {}", update.getReceiveTime(), update.getTime());
 //			log.info("{}", stats);
 		}
 
-		double deadZone = (update.getPaddleHeight() / 2) - 2.0d;
+		double deadZone = (update.getPaddleHeight() / 2) - 10.0d;
 		double yDiff = paddleTarget - myCurrentPosition.getY() - (update.getPaddleHeight() / 2);
 		ChangeDirMessage cdm = null;
 		if (yDiff > deadZone && speed <= 0.0d) {
