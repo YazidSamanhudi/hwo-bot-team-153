@@ -76,7 +76,6 @@ public class BallGame extends Game {
 //			double paddleVelocity = (myCurrentPosition.getY() - myPreviousPosition.getY()) / updateDeltaTime;
 //			log.debug("Speed: {}, Angle: {}, PT: {}, PV: {}, min: {}, max: {}", new Object[]{ballTravelDistance, ballAngle, paddleTarget, paddleVelocity, minVelocity, maxVelocity});
 			setSeenBallVelocityLimits(ballTravelDistance);
-			checkAngleChange(ballAngle, ballTravelDistance);
 			incoming = ballIsIncoming(ballAngle);
 
 			paddleTarget = round(bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity));
@@ -166,30 +165,7 @@ public class BallGame extends Game {
 	public void gameStarted(List<String> players) {
 		myName = players.get(0);
 		log.info("New game. Players: {}", players);
-//try {
-//	connection.sendMessage(new ChangeDirMessage(1.0d));
-//} catch(JsonGenerationException e) {
-//	// TODO Auto-generated catch block
-//	e.printStackTrace();
-//} catch(JsonMappingException e) {
-//	// TODO Auto-generated catch block
-//	e.printStackTrace();
-//} catch(IOException e) {
-//	// TODO Auto-generated catch block
-//	e.printStackTrace();
-//}
-	}
 
-	private void checkAngleChange(double ballAngle, double ballTravelDistance) {
-		prevDegAngle = degAngle;
-		degAngle = ((ballAngle / Math.PI * 180) + (ballAngle > 0 ? 0 : 360) + 90) % 360;
-		if (Math.abs(degAngle - prevDegAngle) > 0.01) {  // direction change
-//			log.debug("{}", new Object[]{
-//								String.format("Speed: %01.3f angle: %06.3f minVel: %01.3f maxVel: %01.3f", ballTravelDistance, degAngle, minVelocity, maxVelocity)
-//							});
-			// FIXME tähän nyt ne kulmien, laskettujen osumakohtien ja vastustajan/oman mailan sijantien tallennukset
-			//       Aina ei ole 'varmaa' tietoa pomppukulmasta jos pallo lähes välittömästi pomppaa seinästä (kun ollaan lähellä kulmaa)
-		}
 	}
 
 	private double round(double d) {
