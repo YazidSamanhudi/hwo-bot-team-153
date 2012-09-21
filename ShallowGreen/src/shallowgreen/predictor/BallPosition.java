@@ -180,6 +180,43 @@ public class BallPosition {
 		return simY;
 	}
 
+	/**
+	 * Estimate offset from center of paddle to increase or decrease ball trajectory slope
+	 * so that it is as far as possible from enemy paddle upon arrival.
+	 * 
+	 * We have observed that when the ball bounces slightly off-center from the paddle,
+	 * it's slope upon bouncing back is altered. Hitting top of the paddle increases the
+	 * angle (when traveling towards enemy) and hitting bottom of the paddle decreases the
+	 * angle (when traveling towards enemy). This is helpful as the change in slope can be
+	 * simply summed with expected slope.
+	 * 
+	 * We have observed the change in slope to be about n*30/0.4 where n is the amount
+	 * of pixels from the center of the paddle, negative-n for offset towards up and positive
+	 * for offset towards bottom.
+	 * 
+	 * We have empirically (n=801) determined that about 60% of paddle area is usable and
+	 * that there is offset from the center of the paddle ball radius amount of pixels.
+	 * In other words, if paddle is 50 pixels high it's center would be at 25 pixels, but
+	 * in reality it is at 30 pixels.
+	 * 
+	 * The effective usable range for attempting to change is therefore about in the range
+	 * from 15 to 45 pixels, and -10 .. +20 pixels from the center.
+	 * 
+	 * This method first determines if the ball should be launched towards top or bottom
+	 * of the field. It then iterates through 30 different offsets and determines which one
+	 * is nearest the top/bottom of the field, as required to make the ball land as far
+	 * from enemy paddle as possible. The results are stored in HashMap as (position, offset)
+	 * pairs and min/max from the keySet is chosen; this gives us the calculated offset which
+	 * is returned to the calling process.
+	 * 
+	 * @param update Message from server, contains data such as ball position,
+	 * field size, paddle positions
+	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
+	 * X-direction (per time unit) for direction calculation
+	 * @param yVel Ball direction vector Y-part i.e. it's speed in pixels in
+	 * Y-direction (per time unit) for direction calculation
+	 * @return Offset from center of paddle
+	 */
 	public int targetFarthest(Update update, double xVel, double yVel) {
 		HashMap<Double, Double> offset = new HashMap<>();
 		double target;
@@ -202,13 +239,7 @@ public class BallPosition {
 		for (double centerOffset = halfOfUsableAreaStart; centerOffset <= -1.0d * halfOfUsableAreaStart; centerOffset++) {
 			offset.put(nextEnemySide(update, 1.0d, (centerOffset / S_CHANGE_PIXELS * S_CHANGE + (-1.0 * slope))), centerOffset);
 		}
-		/*		
-		 if (targetZeroY) {
-		 target = offset.get(Collections.min(offset.keySet())) + paddleOffset + paddleHalfHeight;
-		 } else {
-		 target = offset.get(Collections.max(offset.keySet())) + paddleOffset + paddleHalfHeight;
-		 }
-		 */
+
 		if (targetMaxY) {
 			target = offset.get(Collections.max(offset.keySet())) + paddleOffset;
 			log.info("Chosen largest target: {}, enemy-Y: {}", Collections.max(offset.keySet()), update.getRightY());
