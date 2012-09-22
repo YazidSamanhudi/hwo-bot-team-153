@@ -56,6 +56,7 @@ public class BallGame extends Game {
 			if (!incoming) {
 				paddleTarget = update.getFieldMaxHeight() / 2 - (update.getPaddleHeight() / 2);
 			}
+			prevUpdate = update;
 		} else {
 
 			if (update.getNrOfMissiles() != missiles) {
@@ -78,26 +79,44 @@ public class BallGame extends Game {
 			setSeenBallVelocityLimits(ballTravelDistance);
 			incoming = ballIsIncoming(ballAngle);
 
-			paddleTarget = round(bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity));
+			if (!incoming || incoming && update.getBallX() > 30) {
+				paddleTarget = round(bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity));
+			}
+
 			if (prevPt != paddleTarget) {
-				log.info("paddleTarget = {}, targetFarthest = {}", paddleTarget, round(bpEstimator.targetFarthest(update, ballXVelocity, ballYVelocity)));
+				log.debug("paddleTarget = {}, targetFarthest = {}", paddleTarget, round(bpEstimator.targetFarthest(update, ballXVelocity, ballYVelocity)));
 				prevPt = paddleTarget;
 			}
+			
+			if (paddleTarget > (update.getFieldMaxHeight() - update.getPaddleHeight())) {
+				log.info("paddleTarget is {}: does paddle bounce from wall?", paddleTarget);
+			}
+			
 //			if (incoming && update.getBallX() < 200) {
-			if (incoming) {
+			if (incoming && update.getBallX() > 50) {  // arbitrary limit after which we don't change our mind
 				paddleTarget += bpEstimator.targetFarthest(update, ballXVelocity, ballYVelocity);
 			}
+			
+			if (paddleTarget < 1) {
+				paddleTarget = 0;
+			} else if (paddleTarget > (update.getFieldMaxHeight() - update.getPaddleHeight() - 1)) {
+				paddleTarget = (update.getFieldMaxHeight() - update.getPaddleHeight() - 1);
+			}
+//				paddleTarget = ((paddleTarget < 1) : 0.0d ? (paddleTarget > (update.getFieldMaxHeight() - update.getPaddleHeight() - 1) ? (update.getFieldMaxHeight() - update.getPaddleHeight()) : paddleTarget));
+
 
 			stats.updateStatistics(update, rttEstimator.getRTTmsEstimate());
 //		  log.info("receiveTime: {}, game time: {}", update.getReceiveTime(), update.getTime());
 //			log.info("{}", stats);
 		}
 
-		double deadZone = (update.getPaddleHeight() / 2) - 10.0d;
+//		double deadZone = (update.getPaddleHeight() / 2) - 10.0d;
+		double deadZone = 10.0d;
 		double yDiff = paddleTarget - myCurrentPosition.getY() - (update.getPaddleHeight() / 2);
 		ChangeDirMessage cdm = null;
 		if (yDiff > deadZone && speed <= 0.0d) {
 			cdm = new ChangeDirMessage(1.0d);
+			// (update.getLeftY() - prevUpdate.getLeftY())
 			speed = 1.0d;
 		} else if (yDiff < -deadZone && speed >= 0.0d) {
 			cdm = new ChangeDirMessage(-1.0d);
@@ -106,6 +125,14 @@ public class BallGame extends Game {
 			cdm = new ChangeDirMessage(0.0d);
 			speed = 0.0d;
 		}
+		if (yDiff > deadZone && (update.getLeftY() - prevUpdate.getLeftY()) > 0.0d && speed > 0.0d) {
+			cdm = new ChangeDirMessage(speed);
+		}
+		if (yDiff < -deadZone && (update.getLeftY() - prevUpdate.getLeftY()) < 0.0d && speed < 0.0d) {
+			cdm = new ChangeDirMessage(speed);
+		}
+
+
 // TODO: the deadZone-stuff is too lax, needs possibly another slower speed fine tune.
 		prevUpdate = update;
 		firstUpdate = false;

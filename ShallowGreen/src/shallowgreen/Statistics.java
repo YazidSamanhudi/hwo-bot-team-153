@@ -81,7 +81,7 @@ public class Statistics {
 		updates[curr] = update;
 		rtts[curr] = rtt;
 		rttLast = rtt;
-		dtLast = updates[curr].getReceiveTime() - updates[prev].getReceiveTime();
+		dtLast = updates[curr].getReceiveTimeMillis() - updates[prev].getReceiveTimeMillis();
 		dt[curr] = dtLast;
 		setMinX(Math.min(minX, update.getBallX()));
 		setMaxX(Math.max(maxX, update.getBallX()));

@@ -4,7 +4,6 @@
  */
 package shallowgreen.predictor;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import org.slf4j.Logger;
@@ -26,8 +25,8 @@ public class BallPosition {
 	private double angle;                       // ball angle, to determine direction
 	private double top, left, right, ySpace, preSimY;
 	private final double S_CHANGE_PIXELS = 30;  // Estimate: ball trajectory slope changes about
-	private final double S_CHANGE = 0.4;        //           +-0.4 per 30 pixels of offset on paddle
-	private final double USABLE_PADDLE_AREA = 0.6; // Estimate: aboout 60 percent usable based on observations (n = 801)
+	private final double S_CHANGE = 0.35;       //           +-0.35 per 30 pixels of offset on paddle
+	private final double USABLE_PADDLE_AREA = 0.85; // Estimate about usable paddle area based on observations
 
 	public BallPosition() {
 	}
@@ -190,20 +189,12 @@ public class BallPosition {
 	 * angle (when traveling towards enemy). This is helpful as the change in slope can be
 	 * simply summed with expected slope.
 	 * 
-	 * We have observed the change in slope to be about n*30/0.4 where n is the amount
+	 * We have observed the change in slope to be about n*30/0.35 where n is the amount
 	 * of pixels from the center of the paddle, negative-n for offset towards up and positive
 	 * for offset towards bottom.
-	 * 
-	 * We have empirically (n=801) determined that about 60% of paddle area is usable and
-	 * that there is offset from the center of the paddle ball radius amount of pixels.
-	 * In other words, if paddle is 50 pixels high it's center would be at 25 pixels, but
-	 * in reality it is at 30 pixels.
-	 * 
-	 * The effective usable range for attempting to change is therefore about in the range
-	 * from 15 to 45 pixels, and -10 .. +20 pixels from the center.
-	 * 
+
 	 * This method first determines if the ball should be launched towards top or bottom
-	 * of the field. It then iterates through 30 different offsets and determines which one
+	 * of the field. It then iterates through paddle area offsets from paddle center and determines which one
 	 * is nearest the top/bottom of the field, as required to make the ball land as far
 	 * from enemy paddle as possible. The results are stored in HashMap as (position, offset)
 	 * pairs and min/max from the keySet is chosen; this gives us the calculated offset which
@@ -226,13 +217,10 @@ public class BallPosition {
 		update.getBall().getPosition().setY(nextMySide(update, xVel, yVel)); // back from our paddle
 
 		double slope = (yVel / (-1.0 * xVel));  // called only when ball is incoming
-		// 0.4 per 30 pikseliä offsettiä
 		// rajat: 15 .. 45 (empiirisestä havainnosta http://www.cs.helsinki.fi/u/mcrantan/hwo/slope-pos-xyplot-2.png)
-		// pelimoottorin tekijät munanneet pallon säteen verran offsettiä
-		// kun pallo on < 15 tai > 45 kohdalla mailaa, tulos muuttuu hyvin epävarmaksi
-		// käytetään 60% mailan koosta, siis väli 15 .. 45 = 30 pikseliä 50:stä
-
+		// pelimoottorin tekijät munanneet pallon säteen verran offsettiä?
 		int paddleOffset = (int) update.getBallRadius();
+//		int paddleOffset = 0;
 		int paddleHalfHeight = (int) (update.getPaddleHeight() / 2);
 		boolean targetMaxY = (targetFarthestSide(update) == 0) ? false : true;
 		int halfOfUsableAreaStart = (int) (-1.0 * (USABLE_PADDLE_AREA * paddleHalfHeight));
@@ -242,10 +230,10 @@ public class BallPosition {
 
 		if (targetMaxY) {
 			target = offset.get(Collections.max(offset.keySet())) + paddleOffset;
-			log.info("Chosen largest target: {}, enemy-Y: {}", Collections.max(offset.keySet()), update.getRightY());
+			log.debug("Chosen largest target: {}, enemy-Y: {}", Collections.max(offset.keySet()), update.getRightY());
 		} else {
 			target = offset.get(Collections.min(offset.keySet())) + paddleOffset;
-			log.info("Chosen smallest target: {}", Collections.min(offset.keySet()));
+			log.debug("Chosen smallest target: {}", Collections.min(offset.keySet()));
 		}
 		
 		update.getBall().getPosition().setX(tempBallXPosition);

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Update {
 
-	private long receiveTime = (System.nanoTime() / 1000000);
+	private long receiveTimeMillis = (System.nanoTime() / 1000000);
 	private long time;
 	private Player left;
 	private Player right;
@@ -13,8 +13,8 @@ public class Update {
 	@JsonProperty("conf")
 	private Field field;
 
-	public long getReceiveTime() {
-		return receiveTime;
+	public long getReceiveTimeMillis() {
+		return receiveTimeMillis;
 	}
 
 	public long getTime() {
