@@ -20,6 +20,10 @@ public class BallGame extends Game {
 	private static final Logger log = LoggerFactory.getLogger(BallGame.class);
 	private static final long TICKS = 1000;
 	private static final int MESSAGES = 10;
+	private static final double DEADZONE_1 = 16.0d;
+	private static final double DEADZONE_2 = 6.0d;
+	private static final double DZ_1_SPEED = 1.0d;
+	private static final double DZ_2_SPEED = 0.3d;
 	private String myName;
 	private double speed;
 	private double minVelocity = 999;
@@ -35,7 +39,7 @@ public class BallGame extends Game {
 	private RTT rttEstimator;
 	private BallPosition bpEstimator;
 	private Statistics stats;
-	double degAngle, prevDegAngle, incomingAngle, outgoingAngle, prevPt;
+	double degAngle, prevDegAngle, incomingAngle, outgoingAngle, prevPt, currentTargetZone;
 
 	@Override
 	public void update(Update update) {
@@ -49,6 +53,8 @@ public class BallGame extends Game {
 		Player myCurrentPosition = update.getLeft();
 
 		if (firstUpdate) {
+			currentTargetZone = DEADZONE_1;
+			speed = 0.0d;
 			rttEstimator.stop();
 			bpEstimator = new BallPosition();
 			stats = new Statistics(update);
@@ -111,29 +117,15 @@ public class BallGame extends Game {
 //			log.info("{}", stats);
 		}
 
-//		double deadZone = (update.getPaddleHeight() / 2) - 10.0d;
-		double deadZone = 10.0d;
-		double yDiff = paddleTarget - myCurrentPosition.getY() - (update.getPaddleHeight() / 2);
-		ChangeDirMessage cdm = null;
-		
-		if (yDiff > deadZone && speed <= 0.0d) {
-			cdm = new ChangeDirMessage(1.0d);
-			// (update.getLeftY() - prevUpdate.getLeftY())
-			speed = 1.0d;
-		} else if (yDiff < -deadZone && speed >= 0.0d) {
-			cdm = new ChangeDirMessage(-1.0d);
-			speed = -1.0d;
-		} else if (speed != 0.0d && yDiff < deadZone && yDiff > -deadZone) {
-			cdm = new ChangeDirMessage(0.0d);
-			speed = 0.0d;
+		//return paddleTarget - update.getLeftY() - (update.getPaddleHeight() / 2);
+		if (paddleDistanceFromTarget(update) > -DEADZONE_1 && paddleDistanceFromTarget(update) < DEADZONE_1) {
+			currentTargetZone = DEADZONE_2;
+		} else {
+			currentTargetZone = DEADZONE_1;
 		}
-		if ((update.getLeftY() - prevUpdate.getLeftY()) > 0.0d && speed <= 0.0d) {
-			cdm = new ChangeDirMessage(speed);
-		}
-		if ((update.getLeftY() - prevUpdate.getLeftY()) < 0.0d && speed >= 0.0d) {
-			cdm = new ChangeDirMessage(speed);
-		}
+		log.debug("Chosen currentTargetZone: {}", currentTargetZone);
 
+		ChangeDirMessage cdm = putPaddleToPosition(update, currentTargetZone);
 
 // TODO: the deadZone-stuff is too lax, needs possibly another slower speed fine tune.
 		prevUpdate = update;
@@ -199,5 +191,38 @@ public class BallGame extends Game {
 
 	private double round(double d) {
 		return ((double) Math.round(d * 10.0d)) / 10.0d;
+	}
+
+	private double paddleDistanceFromTarget(Update update) {
+		return paddleTarget - update.getLeftY() - (update.getPaddleHeight() / 2);
+	}
+
+	private ChangeDirMessage putPaddleToPosition(Update update, double targetDistance) {
+		//		double deadZone = (update.getPaddleHeight() / 2) - 10.0d;
+		double deadZone = targetDistance;
+		double speedBase = (deadZone >= DEADZONE_1 ? DZ_1_SPEED : DZ_2_SPEED);
+//		double yDiff = paddleTarget - update.getLeftY() - (update.getPaddleHeight() / 2);
+		double yDiff = paddleDistanceFromTarget(update);
+		ChangeDirMessage cdm = null;
+//		log.debug("deadZone: {}, speedBase: {}, yDiff: {}", deadZone, speedBase, yDiff);
+
+		if (yDiff > deadZone && speed <= 0.0) {
+			cdm = new ChangeDirMessage(1.0d * speedBase);
+			// (update.getLeftY() - prevUpdate.getLeftY())
+			speed = 1.0d * speedBase;
+		} else if (yDiff < -deadZone && speed >= 0.0) {
+			cdm = new ChangeDirMessage(-1.0d * speedBase);
+			speed = -1.0d * speedBase;
+		} else if (speed != 0.0d && yDiff < deadZone && yDiff > -deadZone) {
+			cdm = new ChangeDirMessage(0.0d);
+			speed = 0.0d;
+		}
+		if ((update.getLeftY() - prevUpdate.getLeftY()) > 0.0d && speed <= 0.0d) {
+			cdm = new ChangeDirMessage(speed);
+		}
+		if ((update.getLeftY() - prevUpdate.getLeftY()) < 0.0d && speed >= 0.0d) {
+			cdm = new ChangeDirMessage(speed);
+		}
+		return cdm;
 	}
 }
