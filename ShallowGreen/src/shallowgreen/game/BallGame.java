@@ -41,6 +41,7 @@ public class BallGame extends Game {
 	public void update(Update update) {
 
 		boolean incoming = true;
+		boolean goSlow = false;
 		double ballXVelocity, ballYVelocity;
 		long updateDeltaTime;
 		// calculate which way we should be going
@@ -83,24 +84,24 @@ public class BallGame extends Game {
 				paddleTarget = round(bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity));
 			}
 
-			if (prevPt != paddleTarget) {
-				log.debug("paddleTarget = {}, targetFarthest = {}", paddleTarget, round(bpEstimator.targetFarthest(update, ballXVelocity, ballYVelocity)));
-				prevPt = paddleTarget;
-			}
-			
-			if (paddleTarget > (update.getFieldMaxHeight() - update.getPaddleHeight())) {
-				log.info("paddleTarget is {}: does paddle bounce from wall?", paddleTarget);
-			}
-			
+//			if (prevPt != paddleTarget) {
+//				log.debug("paddleTarget = {}, targetFarthest = {}", paddleTarget, round(bpEstimator.targetFarthest(update, ballXVelocity, ballYVelocity)));
+//				prevPt = paddleTarget;
+//			}
+
+//			if (paddleTarget > (update.getFieldMaxHeight() - update.getPaddleHeight())) {
+//				log.info("paddleTarget is {}: does paddle bounce from wall?", paddleTarget);
+//			}
+
 //			if (incoming && update.getBallX() < 200) {
 			if (incoming && update.getBallX() > 50) {  // arbitrary limit after which we don't change our mind
 				paddleTarget += bpEstimator.targetFarthest(update, ballXVelocity, ballYVelocity);
 			}
-			
+
 			if (paddleTarget < 1) {
 				paddleTarget = 0;
-			} else if (paddleTarget > (update.getFieldMaxHeight() - update.getPaddleHeight() - 1)) {
-				paddleTarget = (update.getFieldMaxHeight() - update.getPaddleHeight() - 1);
+			} else if (paddleTarget > (update.getFieldMaxHeight() - 1)) {
+				paddleTarget = (update.getFieldMaxHeight() - 1);
 			}
 //				paddleTarget = ((paddleTarget < 1) : 0.0d ? (paddleTarget > (update.getFieldMaxHeight() - update.getPaddleHeight() - 1) ? (update.getFieldMaxHeight() - update.getPaddleHeight()) : paddleTarget));
 
@@ -114,6 +115,7 @@ public class BallGame extends Game {
 		double deadZone = 10.0d;
 		double yDiff = paddleTarget - myCurrentPosition.getY() - (update.getPaddleHeight() / 2);
 		ChangeDirMessage cdm = null;
+		
 		if (yDiff > deadZone && speed <= 0.0d) {
 			cdm = new ChangeDirMessage(1.0d);
 			// (update.getLeftY() - prevUpdate.getLeftY())
@@ -125,10 +127,10 @@ public class BallGame extends Game {
 			cdm = new ChangeDirMessage(0.0d);
 			speed = 0.0d;
 		}
-		if (yDiff > deadZone && (update.getLeftY() - prevUpdate.getLeftY()) > 0.0d && speed > 0.0d) {
+		if ((update.getLeftY() - prevUpdate.getLeftY()) > 0.0d && speed <= 0.0d) {
 			cdm = new ChangeDirMessage(speed);
 		}
-		if (yDiff < -deadZone && (update.getLeftY() - prevUpdate.getLeftY()) < 0.0d && speed < 0.0d) {
+		if ((update.getLeftY() - prevUpdate.getLeftY()) < 0.0d && speed >= 0.0d) {
 			cdm = new ChangeDirMessage(speed);
 		}
 
