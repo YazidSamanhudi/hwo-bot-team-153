@@ -20,8 +20,8 @@ public class BallGame extends Game {
 	private static final Logger log = LoggerFactory.getLogger(BallGame.class);
 	private static final long TICKS = 1000;
 	private static final int MESSAGES = 10;
-	private static final double DEADZONE_1 = 16.0d;
-	private static final double DEADZONE_2 = 6.0d;
+	private static final double DEADZONE_1 = 20.0d;
+	private static final double DEADZONE_2 = 8.0d;
 	private static final double DZ_1_SPEED = 1.0d;
 	private static final double DZ_2_SPEED = 0.3d;
 	private String myName;
@@ -33,7 +33,6 @@ public class BallGame extends Game {
 	private double prevAngle;
 	private long messageLimitTick;
 	private int messages;
-	private int gamesWon = 0;
 	private boolean firstUpdate = true;
 	private double missiles = 0.0;
 	private RTT rttEstimator;
@@ -45,7 +44,6 @@ public class BallGame extends Game {
 	public void update(Update update) {
 
 		boolean incoming = true;
-		boolean goSlow = false;
 		double ballXVelocity, ballYVelocity;
 		long updateDeltaTime;
 		// calculate which way we should be going
@@ -125,7 +123,7 @@ public class BallGame extends Game {
 		}
 		log.debug("Chosen currentTargetZone: {}", currentTargetZone);
 
-		ChangeDirMessage cdm = putPaddleToPosition(update, currentTargetZone);
+		ChangeDirMessage cdm = putPaddleToTarget(update, currentTargetZone);
 
 // TODO: the deadZone-stuff is too lax, needs possibly another slower speed fine tune.
 		prevUpdate = update;
@@ -197,20 +195,20 @@ public class BallGame extends Game {
 		return paddleTarget - update.getLeftY() - (update.getPaddleHeight() / 2);
 	}
 
-	private ChangeDirMessage putPaddleToPosition(Update update, double targetDistance) {
+	private ChangeDirMessage putPaddleToTarget(Update update, double deadZone) {
 		//		double deadZone = (update.getPaddleHeight() / 2) - 10.0d;
-		double deadZone = targetDistance;
+//		double deadZone = targetDistance;
 		double speedBase = (deadZone >= DEADZONE_1 ? DZ_1_SPEED : DZ_2_SPEED);
 //		double yDiff = paddleTarget - update.getLeftY() - (update.getPaddleHeight() / 2);
 		double yDiff = paddleDistanceFromTarget(update);
 		ChangeDirMessage cdm = null;
 //		log.debug("deadZone: {}, speedBase: {}, yDiff: {}", deadZone, speedBase, yDiff);
 
-		if (yDiff > deadZone && speed <= 0.0) {
+		if (yDiff > deadZone && speed < speedBase) {
 			cdm = new ChangeDirMessage(1.0d * speedBase);
 			// (update.getLeftY() - prevUpdate.getLeftY())
 			speed = 1.0d * speedBase;
-		} else if (yDiff < -deadZone && speed >= 0.0) {
+		} else if (yDiff < -deadZone && (speed >= 0.0 || speed < -speedBase)) {
 			cdm = new ChangeDirMessage(-1.0d * speedBase);
 			speed = -1.0d * speedBase;
 		} else if (speed != 0.0d && yDiff < deadZone && yDiff > -deadZone) {
