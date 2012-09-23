@@ -20,8 +20,8 @@ public class BallGame extends Game {
 	private static final Logger log = LoggerFactory.getLogger(BallGame.class);
 	private static final long TICKS = 1000;
 	private static final int MESSAGES = 10;
-	private static final double DEADZONE_1 = 20.0d;
-	private static final double DEADZONE_2 = 8.0d;
+	private static final double DEADZONE_1 = 22.0d;
+	private static final double DEADZONE_2 = 7.0d;
 	private static final double DZ_1_SPEED = 1.0d;
 	private static final double DZ_2_SPEED = 0.3d;
 	private String myName;
@@ -84,7 +84,7 @@ public class BallGame extends Game {
 			setSeenBallVelocityLimits(ballTravelDistance);
 			incoming = ballIsIncoming(ballAngle);
 
-			if (!incoming || incoming && update.getBallX() > 30) {
+			if (!incoming || incoming && update.getBallX() > 50) {
 				paddleTarget = round(bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity));
 			}
 
@@ -99,7 +99,7 @@ public class BallGame extends Game {
 
 //			if (incoming && update.getBallX() < 200) {
 			if (incoming && update.getBallX() > 50) {  // arbitrary limit after which we don't change our mind
-				paddleTarget += bpEstimator.targetFarthest(update, ballXVelocity, ballYVelocity);
+				paddleTarget += (int) bpEstimator.targetFarthest(update, ballXVelocity, ballYVelocity);
 			}
 
 			if (paddleTarget < 1) {
@@ -200,26 +200,39 @@ public class BallGame extends Game {
 //		double deadZone = targetDistance;
 		double speedBase = (deadZone >= DEADZONE_1 ? DZ_1_SPEED : DZ_2_SPEED);
 //		double yDiff = paddleTarget - update.getLeftY() - (update.getPaddleHeight() / 2);
-		double yDiff = paddleDistanceFromTarget(update);
+		double moveDownAmount = paddleDistanceFromTarget(update);
 		ChangeDirMessage cdm = null;
 //		log.debug("deadZone: {}, speedBase: {}, yDiff: {}", deadZone, speedBase, yDiff);
 
-		if (yDiff > deadZone && speed < speedBase) {
-			cdm = new ChangeDirMessage(1.0d * speedBase);
+		if (moveDownAmount > deadZone && speed != speedBase) {  // if paddle is far below target and speed is not right,
+			cdm = new ChangeDirMessage(1.0d * speedBase);         // make paddle go fast towards target
 			// (update.getLeftY() - prevUpdate.getLeftY())
 			speed = 1.0d * speedBase;
-		} else if (yDiff < -deadZone && (speed >= 0.0 || speed < -speedBase)) {
-			cdm = new ChangeDirMessage(-1.0d * speedBase);
-			speed = -1.0d * speedBase;
-		} else if (speed != 0.0d && yDiff < deadZone && yDiff > -deadZone) {
-			cdm = new ChangeDirMessage(0.0d);
-			speed = 0.0d;
+		} else if (moveDownAmount < -deadZone && speed != (-speedBase)) {
+			cdm = new ChangeDirMessage(-1.0d * speedBase);        // same for the case where paddle is far higher than target
+			speed = -1.0d * speedBase;                            // and not moving at right speed
+		} else if (speed != 0.0d && moveDownAmount < deadZone && moveDownAmount > -deadZone) {
+			cdm = new ChangeDirMessage(0.0d);                     // ..but if paddle is moving at right speed
+			speed = 0.0d;                                         // and is in the zone, stop it (there may be more fine-grained
+		}                                                       // zones later)
+
+		if (cdm != null) {
+			log.debug("cdm created, speed: {}", speed);
 		}
-		if ((update.getLeftY() - prevUpdate.getLeftY()) > 0.0d && speed <= 0.0d) {
+
+		if ((update.getLeftY() - prevUpdate.getLeftY()) > 0.0d && speed < 0.0d) {  // moving ball, bounce from top wall?
+			speed = -speedBase;
 			cdm = new ChangeDirMessage(speed);
+			log.debug("Wrong dir, changing (1), speed: {}, my Y-pos: {}, ballY: {}", speed, update.getLeftY(), update.getBallY());
 		}
-		if ((update.getLeftY() - prevUpdate.getLeftY()) < 0.0d && speed >= 0.0d) {
+		if ((update.getLeftY() - prevUpdate.getLeftY()) < 0.0d && speed > 0.0d) {  // moving ball, bounce from bottom wall?
+			speed = speedBase;
 			cdm = new ChangeDirMessage(speed);
+			log.debug("Wrong dir, changing (2), speed: {}, my Y-pos: {}, ballY: {}", speed, update.getLeftY(), update.getBallY());
+		}
+
+		if ((-DZ_2_SPEED <= speed && speed <= DZ_2_SPEED) && speed != 0.0) {
+			log.debug("LOWSPEED: ballY: {}, my Y-pos: {}, my Y-diff: {}, speedBase: {}, speed: {}, paddleTarget: {}", update.getBallY(), update.getLeftY(), prevUpdate.getLeftY() - update.getLeftY(), speedBase, speed, paddleTarget);
 		}
 		return cdm;
 	}

@@ -52,6 +52,7 @@ public class Connection implements Runnable {
 		this.stats = new Statistics();
 		this.rttEstimator = new RTT(address);
 		new Thread(rttEstimator).start();
+		rttEstimator.stop();
 	}
 
 	public Connection(String name, InetSocketAddress address, GameFactory gameFactory, String duelistName) {

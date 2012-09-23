@@ -25,7 +25,7 @@ public class BallPosition {
 	private double angle;                       // ball angle, to determine direction
 	private double top, left, right, ySpace, preSimY;
 	private final double S_CHANGE_PIXELS = 30;  // Estimate: ball trajectory slope changes about
-	private final double S_CHANGE = 0.35;       //           +-0.35 per 30 pixels of offset on paddle
+	private final double S_CHANGE = 0.40;       //           +-0.40 per 30 pixels of offset on paddle
 	private final double USABLE_PADDLE_AREA = 0.85; // Estimate about usable paddle area based on observations
 
 	public BallPosition() {
@@ -180,26 +180,28 @@ public class BallPosition {
 	}
 
 	/**
-	 * Estimate offset from center of paddle to increase or decrease ball trajectory slope
-	 * so that it is as far as possible from enemy paddle upon arrival.
-	 * 
-	 * We have observed that when the ball bounces slightly off-center from the paddle,
-	 * it's slope upon bouncing back is altered. Hitting top of the paddle increases the
-	 * angle (when traveling towards enemy) and hitting bottom of the paddle decreases the
-	 * angle (when traveling towards enemy). This is helpful as the change in slope can be
-	 * simply summed with expected slope.
-	 * 
-	 * We have observed the change in slope to be about n*30/0.35 where n is the amount
-	 * of pixels from the center of the paddle, negative-n for offset towards up and positive
-	 * for offset towards bottom.
-
-	 * This method first determines if the ball should be launched towards top or bottom
-	 * of the field. It then iterates through paddle area offsets from paddle center and determines which one
-	 * is nearest the top/bottom of the field, as required to make the ball land as far
-	 * from enemy paddle as possible. The results are stored in HashMap as (position, offset)
-	 * pairs and min/max from the keySet is chosen; this gives us the calculated offset which
-	 * is returned to the calling process.
-	 * 
+	 * Estimate offset from center of paddle to increase or decrease ball
+	 * trajectory slope so that it is as far as possible from enemy paddle upon
+	 * arrival.
+	 *
+	 * We have observed that when the ball bounces slightly off-center from the
+	 * paddle, it's slope upon bouncing back is altered. Hitting top of the paddle
+	 * increases the angle (when traveling towards enemy) and hitting bottom of
+	 * the paddle decreases the angle (when traveling towards enemy). This is
+	 * helpful as the change in slope can be simply summed with expected slope.
+	 *
+	 * We have observed the change in slope to be about n*30/0.35 where n is the
+	 * amount of pixels from the center of the paddle, negative-n for offset
+	 * towards up and positive for offset towards bottom.
+	 *
+	 * This method first determines if the ball should be launched towards top or
+	 * bottom of the field. It then iterates through paddle area offsets from
+	 * paddle center and determines which one is nearest the top/bottom of the
+	 * field, as required to make the ball land as far from enemy paddle as
+	 * possible. The results are stored in HashMap as (position, offset) pairs and
+	 * min/max from the keySet is chosen; this gives us the calculated offset
+	 * which is returned to the calling process.
+	 *
 	 * @param update Message from server, contains data such as ball position,
 	 * field size, paddle positions
 	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
@@ -208,11 +210,12 @@ public class BallPosition {
 	 * Y-direction (per time unit) for direction calculation
 	 * @return Offset from center of paddle
 	 */
-	public int targetFarthest(Update update, double xVel, double yVel) {
+	public double targetFarthest(Update update, double xVel, double yVel) {
 		HashMap<Double, Double> offset = new HashMap<>();
 		double target;
 		double tempBallXPosition = update.getBallX();
 		double tempBallYPosition = update.getBallY();
+		double spreadMin, spreadMax;
 		update.getBall().getPosition().setX(update.getPaddleWidth() * 2);    // Simulate ball bouncing
 		update.getBall().getPosition().setY(nextMySide(update, xVel, yVel)); // back from our paddle
 
@@ -220,37 +223,37 @@ public class BallPosition {
 		// rajat: 15 .. 45 (empiirisestä havainnosta http://www.cs.helsinki.fi/u/mcrantan/hwo/slope-pos-xyplot-2.png)
 		// pelimoottorin tekijät munanneet pallon säteen verran offsettiä?
 		int paddleOffset = (int) update.getBallRadius();
-//		int paddleOffset = 0;
+		paddleOffset = 0;
 		int paddleHalfHeight = (int) (update.getPaddleHeight() / 2);
-		boolean targetMaxY = (targetFarthestSide(update) == 0) ? false : true;
 		int halfOfUsableAreaStart = (int) (-1.0 * (USABLE_PADDLE_AREA * paddleHalfHeight));
 		for (double centerOffset = halfOfUsableAreaStart; centerOffset <= -1.0d * halfOfUsableAreaStart; centerOffset++) {
 			offset.put(nextEnemySide(update, 1.0d, (centerOffset / S_CHANGE_PIXELS * S_CHANGE + (-1.0 * slope))), centerOffset);
 		}
 
-		if (targetMaxY) {
-			target = offset.get(Collections.max(offset.keySet())) + paddleOffset;
-			log.debug("Chosen largest target: {}, enemy-Y: {}", Collections.max(offset.keySet()), update.getRightY());
-		} else {
-			target = offset.get(Collections.min(offset.keySet())) + paddleOffset;
-			log.debug("Chosen smallest target: {}", Collections.min(offset.keySet()));
-		}
-		
+		// restore original ball position in update as other methods need this info intact
 		update.getBall().getPosition().setX(tempBallXPosition);
 		update.getBall().getPosition().setY(tempBallYPosition);
 
-		return (int) target;
-	}
-
-	private double targetFarthestSide(Update update) {
-		double enemyPaddlePosition = update.getRightY();
-		return (enemyPaddlePosition > update.getFieldMaxHeight() / 2) ? 0 : update.getFieldMaxHeight();
+		// offset's smallest key represents the estimated ball target position spread minimum
+		spreadMin = Collections.min(offset.keySet());
+		// offset's largest key represents the estimated ball target position spread maximum
+		spreadMax = Collections.max(offset.keySet());
+		
+		// ..so we want to return the farthest possible place to put the ball into from enemy paddle. Naive strategy and
+		// TODO: the strategy can be enhanced by calculating the resulting enemy serve spread and, if it causes a situation
+		//       where our side paddle might not make it to the ball, change the strategy.
+		//       One example of losing proposition is when ball comes to our side near top or bottom wall.
+		//       Let's assume the ball has already gained some speed (especially Y-speed). If we decide to bounce
+		//       the ball back in such a way that the slope increases as much as possible, the return ball might land
+		//       near center at enemy side and enemy might change the slope to land the ball in very top corner
+		//       of our side, resulting in a situation where it is not possible for us to make it to the corner.
+		return ((Math.abs(spreadMin - update.getRightY())) > (Math.abs(spreadMax - update.getRightY())) ? offset.get(spreadMin) : offset.get(spreadMax));
 	}
 
 	/**
 	 *
-	 * Calculate next ball Y-position our side based on current trajectory slope.
-	 * Calls itself recursively if ball is traveling towards enemy.
+	 * Calculate next ball Y-position on our side based on current trajectory
+	 * slope. Calls itself recursively if ball is traveling towards enemy.
 	 *
 	 * @param update Message from server, contains data such as ball position,
 	 * field size, paddle positions
@@ -290,6 +293,18 @@ public class BallPosition {
 		//	log.info("nextY predict: dy: {}, simY = {}, ballX: {}, ballY: {}.", new Object[]{dy, simY, update.getBallX(), update.getBallY()});
 	}
 
+	/**
+	 *
+	 * Calculate next ball Y-position on enemy side based on current trajectory
+	 * slope. Calls itself recursively if ball is traveling towards enemy.
+	 *
+	 * @param update Message from server, contains data such as ball position,
+	 * field size, paddle positions
+	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
+	 * X-direction (per time unit)
+	 * @param yVel Ball direction vector Y-part i.e. it's speed in pixels in
+	 * Y-direction (per time unit)
+	 */
 	private void nextEnemyY(Update update, double xVel, double yVel) {
 		double dy;                     // slope factor
 		int bounces = 0;               // bounces from top and bottom walls
@@ -321,6 +336,28 @@ public class BallPosition {
 		//	log.info("nextY predict: dy: {}, simY = {}, ballX: {}, ballY: {}.", new Object[]{dy, simY, update.getBallX(), update.getBallY()});
 	}
 
+	/**
+	 * Calculate real position from projected Y-position that may be outside
+	 * playfield.
+	 *
+	 * Internal variable preSimY is set to estimated ball Y-position when it hits
+	 * next wall.
+	 *
+	 * nextMySide and nextEnemySide return projected Y-position, that may be
+	 * negative or greater than actual playfield size, which means the ball has
+	 * bounced. If the count of bounces is odd, the slope sign changes and ball
+	 * Y-position is (projected-Y % playfield_y_size) distance from top or bottom
+	 * wall (depending on direction of travel; top wall for upwards travel, bottom
+	 * wall for downward travel).
+	 *
+	 * If the count of bounces is even, slope sign stays the same and ball
+	 * Y-position is (projected-Y % playfield_y_size) distance from top wall for
+	 * downwards traveling ball and (projected-Y % playfield_y_size) distance from
+	 * bottom wall for upwards traveling ball.
+	 *
+	 * @return Count of bounces.
+	 *
+	 */
 	private int handleBounce() {
 		int bounces = 0;
 		if (preSimY < top) {
