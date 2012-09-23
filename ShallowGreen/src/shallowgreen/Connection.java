@@ -17,6 +17,7 @@ import shallowgreen.message.RequestDuelMessage;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
@@ -31,6 +32,7 @@ public class Connection implements Runnable {
 	static {
 		objectMapper.setVisibilityChecker(VisibilityChecker.Std.defaultInstance().withFieldVisibility(Visibility.ANY));
 	}
+
 	private String name;
 	private InetSocketAddress address;
 	private BufferedWriter bw;
@@ -81,8 +83,16 @@ public class Connection implements Runnable {
 					sendMessage(joinMessage);
 				}
 
-				Message message;
-				while((message=readMessage())!=null) {
+				while(true) {
+					Message message;
+					try {
+						message=readMessage();
+					} catch(JsonProcessingException e) {
+						log.error("Unknown JSON",e);
+						continue;
+					}
+					if(message==null)
+						break;
 					if(message.getMessageType()==Message.MessageType.GAME_STARTED) {
 						game=gameFactory.newGame();
 						game.setConnection(this);
@@ -120,20 +130,17 @@ public class Connection implements Runnable {
 	}
 
 	public void sendMessage(Message message) throws JsonGenerationException, JsonMappingException, IOException {
-		// TODO: ratelimit
+		// rate limit needs to be handled on a higher tier
 		String s=objectMapper.writerWithType(message.getClass()).writeValueAsString(message);
-//		log.debug(">*{}",s);
 		write(s);
 	}
 
-	private Message readMessage() throws IOException {
+	private Message readMessage() throws IOException, JsonProcessingException {
 		String s=read();
 		if(s==null) {
 			return null;
 		}
-		Message message=objectMapper.readValue(s,Message.class);
-//		log.debug("<*{}",message);
-		return message;
+		return objectMapper.readValue(s,Message.class);
 	}
 
 	private void write(String s) throws IOException {
