@@ -1,7 +1,8 @@
 <!-- This is the PRODUCTION logging configuration -->
 <configuration>
 	<property name="CONSOLEPATTERN" value="%7r %7.-7thread %-5level %-30logger{30}: %msg%n"/>
-	<property name="FILEPATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS}|%-7thread|%-5level|%-40logger|%msg%n"/>
+	<property name="FILEPATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS}|%7r|]%-7thread|%-5level|%-40logger|%msg%n"/>
+	<property name="DATAFLOWPATTERN" value="%msg%n"/>
 
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
@@ -16,13 +17,30 @@
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<pattern>${FILEPATTERN}</pattern>
 		</encoder>
+		<append>true</append>
 	</appender>
 
 	<appender name="ASYNCFILE" queueSize="2048" discardingThreshold="0" class="ch.qos.logback.classic.AsyncAppender">
 		<appender-ref ref="FILE"/>
 	</appender>
 
-	<logger name="org.eclipse" level="WARN"/>
+	<appender name="DATAFLOWFILE" class="ch.qos.logback.core.FileAppender">
+		<file>../log/shallowgreen-dataflow-${fileTimestamp}.log</file>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>${DATAFLOWPATTERN}</pattern>
+		</encoder>
+		<append>true</append>
+	</appender>
+
+	<appender name="ASYNCDATAFLOWFILE" queueSize="2048" discardingThreshold="0" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="DATAFLOWFILE"/>
+	</appender>
+
+	<!-- separate logger for the client-server dataflow -->
+	<logger name="dataflow" level="DEBUG" additivity="false">
+		<appender-ref ref="ASYNCDATAFLOWFILE"/>
+	</logger>
+
 	<logger name="shallowgreen" level="DEBUG"/>
 <!--
 	<logger name="shallowgreen.Connection" level="WARN"/>

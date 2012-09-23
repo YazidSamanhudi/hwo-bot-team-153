@@ -24,6 +24,7 @@ import shallowgreen.predictor.RTT;
 
 public class Connection implements Runnable {
 	private static final Logger log=LoggerFactory.getLogger(Connection.class);
+	private static final Logger logDataflow=LoggerFactory.getLogger("dataflow");
 
 	private static final ObjectMapper objectMapper=new ObjectMapper();
 
@@ -136,6 +137,7 @@ public class Connection implements Runnable {
 
 	private void write(String s) throws IOException {
 		log.debug("> {}",s);
+		logDataflow.debug(">\t{}\t{} ",System.currentTimeMillis(),s);
 		bw.write(s);
 		bw.write('\n');
 		bw.flush();
@@ -145,6 +147,7 @@ public class Connection implements Runnable {
 //		log.debug("BufferedReader br.ready(): {}", br.ready() );
 		String s=br.readLine();
 		log.debug("< {}",s);
+		logDataflow.debug("<\t{}\t{}",System.currentTimeMillis(),s);
 		return s;
 	}
 
