@@ -11,9 +11,12 @@ import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import shallowgreen.message.GameIsOverMessage;
+import shallowgreen.message.GameStartedMessage;
 import shallowgreen.message.JoinMessage;
 import shallowgreen.message.Message;
 import shallowgreen.message.RequestDuelMessage;
+import shallowgreen.predictor.RTT;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -22,7 +25,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
-import shallowgreen.predictor.RTT;
 
 public class Connection implements Runnable {
 	private static final Logger log=LoggerFactory.getLogger(Connection.class);
@@ -74,8 +76,6 @@ public class Connection implements Runnable {
 				bw=new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 				br=new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-				Game game=null;
-
 				// tell the server we are here
 				if(duelistName!=null) {
 					RequestDuelMessage requestDuelMessage=new RequestDuelMessage(name,duelistName);
@@ -84,6 +84,9 @@ public class Connection implements Runnable {
 					JoinMessage joinMessage=new JoinMessage(name);
 					sendMessage(joinMessage);
 				}
+
+				Game game=null;
+				GameStartedMessage latestGameStartedMessage=null;
 
 				while(true) {
 					Message message;
@@ -95,15 +98,36 @@ public class Connection implements Runnable {
 					}
 					if(message==null)
 						break;
-					if(message.getMessageType()==Message.MessageType.GAME_STARTED) {
+					if(message instanceof GameStartedMessage) {
+						latestGameStartedMessage=(GameStartedMessage)message;
 						game=gameFactory.newGame();
 						game.setConnection(this);
 						game.setRTTEstimator(rttEstimator);
 					}
 					if(game!=null) {
-						game.handleMessage(message);
+						try {
+							game.handleMessage(message);
+						} catch(Throwable t) {
+							// short-circuit IOExceptions - nothing we can do about them
+							if(t instanceof IOException)
+								throw (IOException)t;
+							// game had an error - pretend it didn't happen by re-instantiating the Game
+							// and sending it the GameStartedMessage and the actual message
+							game=gameFactory.newGame();
+							try {
+								// latestGameStartedMessage is always non-null here
+								if(latestGameStartedMessage!=null && !(message instanceof GameStartedMessage))
+									game.handleMessage(latestGameStartedMessage);
+								game.handleMessage(message);
+							} catch(Throwable t2) {
+								// still failing, not much we can do about it
+								log.error("Second try of processing message failed",t2);
+								t2.addSuppressed(t);
+								throw t2;
+							}
+						}
 					}
-					if(message.getMessageType()==Message.MessageType.GAME_IS_OVER) {
+					if(message instanceof GameIsOverMessage) {
 						if(game.getStatistics().getGamesWon()==1) {
 							stats.gameWon();
 						} else {
@@ -122,8 +146,7 @@ public class Connection implements Runnable {
 				}
 
 			} catch(IOException e) {
-				// TODO Auto-generated catch block
-				log.error("devfail",e);
+				log.error("Communications failure",e);
 			}
 		} catch(IOException e) {
 			log.error("Socket close failed",e);
@@ -154,7 +177,6 @@ public class Connection implements Runnable {
 	}
 
 	private String read() throws IOException {
-//		log.debug("BufferedReader br.ready(): {}", br.ready() );
 		String s=br.readLine();
 		log.debug("< {}",s);
 		logDataflow.debug("<\t{}\t{}",System.currentTimeMillis(),s);
