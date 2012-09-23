@@ -9,6 +9,7 @@
 		</encoder>
 	</appender>
 
+	<logger name="dataflow" level="ERROR"/>
 	<logger name="org.eclipse" level="WARN"/>
 	<logger name="shallowgreen" level="DEBUG"/>
 	<logger name="shallowgreen.Connection" level="INFO"/>
