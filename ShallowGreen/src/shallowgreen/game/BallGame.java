@@ -82,7 +82,8 @@ public class BallGame extends Game {
 //			double paddleVelocity = (myCurrentPosition.getY() - myPreviousPosition.getY()) / updateDeltaTime;
 //			log.debug("Speed: {}, Angle: {}, PT: {}, PV: {}, min: {}, max: {}", new Object[]{ballTravelDistance, ballAngle, paddleTarget, paddleVelocity, minVelocity, maxVelocity});
 			setSeenBallVelocityLimits(ballTravelDistance);
-			incoming = ballIsIncoming(ballAngle);
+			// if the x is going down, the ball is coming towards us
+			incoming = ballXVelocity<0.0d;
 
 			if (!incoming || incoming && update.getBallX() > 50) {
 				paddleTarget = round(bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity));
@@ -155,10 +156,6 @@ public class BallGame extends Game {
 			messages = 0;
 			messageLimitTick = update.getTime();
 		}
-	}
-
-	private boolean ballIsIncoming(double angle) {
-		return !(angle < (Math.PI / 2) && angle > (Math.PI / -2));
 	}
 
 	@Override
