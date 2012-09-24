@@ -47,7 +47,7 @@ public class Visualizer extends ShallowGreen {
 
 		try {
 			server.start();
-			log.info("Visualizer can be found at: http://localhost:12765/visualize/");
+			log.info("Visualizer can be found at: http://localhost:12765/visualize");
 		} catch(Exception e) {
 			log.error("Failed to initialize the visualization server",e);
 		}
