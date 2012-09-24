@@ -140,21 +140,25 @@ public class AngleVisualizer extends Game {
 					final double inAngle=(intersection.y-(enterSameSlopeUpdate1.getBallY()+enterSameSlopeUpdate1.getBallRadius()))/(intersection.x-(enterSameSlopeUpdate1.getBallX()+enterSameSlopeUpdate1.getBallRadius()));
 					final double outAngle=(intersection.y-(previousUpdate.getBallY()+previousUpdate.getBallRadius()))/(intersection.x-(previousUpdate.getBallX()+previousUpdate.getBallRadius()));
 					double paddleHit = intersection.y - (isLeft ? previousUpdate.getLeftY() : previousUpdate.getRightY());
-					double paddleSpeed = 0;
+					double paddleSpeedTicks = 0;
+					double paddleSpeedReceived = 0;
 					
 					if (isLeft) {
-						paddleSpeed = (update.getLeftY() - previousUpdate.getLeftY()) / (update.getTime() - previousUpdate.getTime());
+						paddleSpeedTicks = (update.getLeftY() - previousUpdate.getLeftY()) / (update.getTime() - previousUpdate.getTime());
+						paddleSpeedReceived = (update.getLeftY() - previousUpdate.getLeftY()) / (update.getReceiveTimeMillis() - previousUpdate.getReceiveTimeMillis());
 					} else {
-						paddleSpeed = (update.getRightY() - previousUpdate.getRightY()) / (update.getTime() - previousUpdate.getTime());
+						paddleSpeedTicks = (update.getRightY() - previousUpdate.getRightY()) / (update.getTime() - previousUpdate.getTime());
+						paddleSpeedReceived = (update.getRightY() - previousUpdate.getRightY()) / (update.getReceiveTimeMillis() - previousUpdate.getReceiveTimeMillis());
 					}
 
 					if(0.0d < paddleHit && paddleHit <= previousUpdate.getPaddleHeight()) {
-						log.debug("in, out, paddleHit, isLeft, paddleSpeed (px/time): {}\t{}\t{}\t{}\t{}",
+						log.info("in, out, paddleHit, isLeft, paddleSpeed (px/time, px/realtime): {}\t{}\t{}\t{}\t{}\t{}",
 										inAngle,
 										outAngle,
 										paddleHit,
 										isLeft,
-										paddleSpeed);
+										paddleSpeedTicks,
+										paddleSpeedReceived);
 					}
 					// housekeeping for the visualization graphics, only keep last 10
 					if (++nextAngle >= 10) {
