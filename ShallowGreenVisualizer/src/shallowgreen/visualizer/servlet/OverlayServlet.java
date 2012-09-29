@@ -32,8 +32,9 @@ public class OverlayServlet extends HttpServlet {
 		String page=readFile("overlay.html");
                 if (page == null)  {
                     System.err.println("HALP! overlay.html is null :(");
-                }
-		bw.write(page.replace("___IFRAMEURL___",Visualizer.gameURL));
+		}
+		if(Visualizer.gameURL!=null)
+			bw.write(page.replace("___IFRAMEURL___",Visualizer.gameURL));
 		bw.flush();
 		bw.close();
 	}
