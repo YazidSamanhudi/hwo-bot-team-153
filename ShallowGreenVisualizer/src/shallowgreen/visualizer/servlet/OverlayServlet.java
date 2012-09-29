@@ -35,6 +35,8 @@ public class OverlayServlet extends HttpServlet {
 		}
 		if(Visualizer.gameURL!=null)
 			bw.write(page.replace("___IFRAMEURL___",Visualizer.gameURL));
+		else
+			bw.write(page.replace("___IFRAMEURL___",""));
 		bw.flush();
 		bw.close();
 	}
