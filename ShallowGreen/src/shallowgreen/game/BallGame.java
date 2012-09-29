@@ -20,8 +20,8 @@ public class BallGame extends Game {
 	private static final Logger log = LoggerFactory.getLogger(BallGame.class);
 	private static final long TICKS = 1000;
 	private static final int MESSAGES = 10;
-	private static final double DEADZONE_1 = 22.0d;
-	private static final double DEADZONE_2 = 7.0d;
+	private static final double DEADZONE_1 = 20.0d;
+	private static final double DEADZONE_2 = 5.0d;
 	private static final double DZ_1_SPEED = 1.0d;
 	private static final double DZ_2_SPEED = 0.3d;
 	private String myName;
@@ -47,8 +47,8 @@ public class BallGame extends Game {
 		double ballXVelocity, ballYVelocity;
 		long updateDeltaTime;
 		// calculate which way we should be going
-		Player myPreviousPosition;
-		Player myCurrentPosition = update.getLeft();
+//		Player myPreviousPosition;
+//		Player myCurrentPosition = update.getLeft();
 
 		if (firstUpdate) {
 			currentTargetZone = DEADZONE_1;
@@ -70,23 +70,24 @@ public class BallGame extends Game {
 
 			checkPerTickMessageLimit(update);
 			updateDeltaTime = update.getTime() - prevUpdate.getTime();
-			myPreviousPosition = prevUpdate.getLeft();
+//			myPreviousPosition = prevUpdate.getLeft();
 
 			ballXVelocity = update.getBallX() - prevUpdate.getBallX();
 			ballYVelocity = update.getBallY() - prevUpdate.getBallY();
 			// due to multiplication, always positive
 			// this is travel distance per update interval time
 			double ballTravelDistance = Math.sqrt((ballXVelocity * ballXVelocity) + (ballYVelocity * ballYVelocity)) / updateDeltaTime;
-			double ballAngle = Math.atan2(ballYVelocity, ballXVelocity);
+//			double ballAngle = Math.atan2(ballYVelocity, ballXVelocity);
 
 //			double paddleVelocity = (myCurrentPosition.getY() - myPreviousPosition.getY()) / updateDeltaTime;
 //			log.debug("Speed: {}, Angle: {}, PT: {}, PV: {}, min: {}, max: {}", new Object[]{ballTravelDistance, ballAngle, paddleTarget, paddleVelocity, minVelocity, maxVelocity});
 			setSeenBallVelocityLimits(ballTravelDistance);
-			// if the x is going down, the ball is coming towards us
-			incoming = ballXVelocity<0.0d;
+			// if the x is negative, the ball is coming towards us
+			incoming = (ballXVelocity < 0.0d);
 
-			if (!incoming || incoming && update.getBallX() > 50) {
+			if (!incoming || (incoming && update.getBallX() > 100)) {
 				paddleTarget = round(bpEstimator.nextMySide(update, ballXVelocity, ballYVelocity));
+				log.debug("nextMySide says: paddleTarget is {}, leftY = {}", paddleTarget, update.getLeftY());
 			}
 
 //			if (prevPt != paddleTarget) {
@@ -99,8 +100,9 @@ public class BallGame extends Game {
 //			}
 
 //			if (incoming && update.getBallX() < 200) {
-			if (incoming && update.getBallX() > 50) {  // arbitrary limit after which we don't change our mind
+			if (incoming && update.getBallX() > 100) {  // arbitrary limit after which we don't change our mind
 				paddleTarget += (int) bpEstimator.targetFarthest(update, ballXVelocity, ballYVelocity);
+				log.debug("targetFarthest says: paddleTarget is {}, leftY = {}", paddleTarget, update.getLeftY());
 			}
 
 			if (paddleTarget < 1) {
@@ -205,10 +207,10 @@ public class BallGame extends Game {
 			cdm = new ChangeDirMessage(1.0d * speedBase);         // make paddle go fast towards target
 			// (update.getLeftY() - prevUpdate.getLeftY())
 			speed = 1.0d * speedBase;
-		} else if (moveDownAmount < -deadZone && speed != (-speedBase)) {
+		} else if (moveDownAmount < (-1.0d * deadZone) && speed != (-speedBase)) {
 			cdm = new ChangeDirMessage(-1.0d * speedBase);        // same for the case where paddle is far higher than target
 			speed = -1.0d * speedBase;                            // and not moving at right speed
-		} else if (speed != 0.0d && moveDownAmount < deadZone && moveDownAmount > -deadZone) {
+		} else if (speed != 0.0d && moveDownAmount < deadZone && moveDownAmount > (-1.0d * deadZone)) {
 			cdm = new ChangeDirMessage(0.0d);                     // ..but if paddle is moving at right speed
 			speed = 0.0d;                                         // and is in the zone, stop it (there may be more fine-grained
 		}                                                       // zones later)

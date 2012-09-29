@@ -100,7 +100,11 @@ public class Update {
 	public double getTickInterval() {
 		return field.getTickInterval();
 	}
-
+	
+@Override
+	public String toString() {
+		return this.getLeftPlayerName() + "@" + this.getLeftY() + ", ball@(" + this.getBallX() + ", " + this.getBallY() + "), " + this.getRightPlayerName() + "@" + this.getRightY() +".";
+	}
 }
 
 /*

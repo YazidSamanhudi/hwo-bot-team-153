@@ -22,131 +22,17 @@ public class BallPosition {
 	private int iterations = 0;                 // completed iterations on this leg (in- or outbound)
 	private double simX;                        // simulated ball Y position
 	private double simY;                        // simulated ball Y position
-	private double angle;                       // ball angle, to determine direction
+//	private double angle;                       // ball angle, to determine direction
 	private double top, left, right, ySpace, preSimY;
+	private boolean incoming;
 	private final double S_CHANGE_PIXELS = 30;  // Estimate: ball trajectory slope changes about
 	private final double S_CHANGE = 0.40;       //           +-0.40 per 30 pixels of offset on paddle
-	private final double USABLE_PADDLE_AREA = 0.85; // Estimate about usable paddle area based on observations
+	private final double USABLE_PADDLE_AREA = 0.90; // Estimate about usable paddle area based on observations
 
 	public BallPosition() {
 	}
 
-	/**
-	 * Estimate ball Y-position when it comes to us next time.
-	 *
-	 * @param update Message from server, contains data such as ball position,
-	 * field size, paddle positions
-	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
-	 * X-direction (per time unit)
-	 * @param yVel Ball direction vector Y-part i.e. it's speed in pixels in
-	 * Y-direction (per time unit)
-	 * @return Estimated Y-position where ball will land when it bounces from
-	 * opponent paddle
-	 */
-	public double naiveNextMySide(Update update, double xVel, double yVel) {
-
-		setStartParameters(update, xVel, yVel); // figure out position and direction
-
-		if (incoming(angle)) {
-			simulateInbound(update, xVel, yVel);
-		} else {
-			simulateOutbound(update, xVel, yVel);
-			xVel *= -1.0d;                       // Bounce from opponent paddle
-			simulateInbound(update, xVel, yVel);
-		}
-		return simY;
-	}
-
-	/**
-	 * Estimate ball Y-position on enemy side when it lands there next time.
-	 *
-	 * @param update Message from server, contains data such as ball position,
-	 * field size, paddle positions
-	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
-	 * X-direction (per time unit)
-	 * @param yVel Ball direction vector Y-part i.e. it's speed in pixels in
-	 * Y-direction (per time unit)
-	 * @return Estimated Y-position where ball will land when it bounces from
-	 * opponent paddle
-	 */
-	public double naiveNextEnemySide(Update update, double xVel, double yVel) {
-
-		setStartParameters(update, xVel, yVel); // figure out position and direction
-		if (incoming(angle)) {
-			simulateInbound(update, xVel, yVel);
-			xVel *= -1.0d;                       // Bounce from our paddle
-			simulateOutbound(update, xVel, yVel);
-		} else {
-			simulateOutbound(update, xVel, yVel);
-		}
-		return simY;
-	}
-
-	/**
-	 *
-	 * Simulate ball traveling outwards from out paddle. Changes class' internal
-	 * state to reflect ball position on enemy paddle line as the ball traverses
-	 * towards it in straight line.
-	 *
-	 * @param update Message from server, contains data such as ball position,
-	 * field size, paddle positions
-	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
-	 * X-direction (per time unit)
-	 * @param yVel Ball direction vector Y-part i.e. it's speed in pixels in
-	 * Y-direction (per time unit)
-	 */
-	private void simulateOutbound(Update update, double xVel, double yVel) {
-
-		// Until we hit end of field, add yVel to Y-value and xVel to X-value
-		while (simX < update.getFieldMaxWidth() && iterations < MAX_ITER) {
-			simX += xVel;      // Move simulated ball
-			simY += yVel;      // in both X- and Y-directions
-			if (simY < update.getBallRadius()) {    // If simulated ball hits bottom, 
-				yVel *= -1.0d;   // switch y-direction and 
-				simY *= -1.0d;   // make negative position positive (bring ball back to field)
-			} else if (simY > update.getFieldMaxHeight() - update.getBallRadius()) {  // If it hits roof,
-				yVel *= -1.0d;                                                         // calculate distance by which roof was exceeded and bring back that amount
-				simY = update.getFieldMaxHeight() - (simY - update.getFieldMaxHeight());
-			}
-			iterations++;
-		}
-	}
-
-	/**
-	 *
-	 * Simulate ball traveling towards our paddle. Changes class' internal state
-	 * to reflect ball position on our paddle line as the ball traverses towards
-	 * us in straight line.
-	 *
-	 * @param update Message from server, contains data such as ball position,
-	 * field size, paddle positions
-	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
-	 * X-direction (per time unit)
-	 * @param yVel Ball direction vector Y-part i.e. it's speed in pixels in
-	 * Y-direction (per time unit)
-	 */
-	private void simulateInbound(Update update, double xVel, double yVel) {
-
-		// For as long as the ball has not reached our end of field
-		while (simX > update.getBallRadius() && iterations < MAX_ITER) {
-			simX += xVel;
-			simY += yVel;
-			if (simY < 0) {   // SEE COMMENTS ON simulateOutbound()
-				yVel *= -1.0d;
-				simY *= -1.0d;
-			} else if (simY > update.getFieldMaxHeight() - update.getBallRadius()) {
-				yVel *= -1.0d;
-				simY = update.getFieldMaxHeight() - (simY - update.getFieldMaxHeight());
-			}
-			iterations++;
-		}
-	}
-
-	private boolean incoming(double angle) {
-		return !(angle < (Math.PI / 2) && angle > (Math.PI / -2));
-	}
-
-	/**
+		/**
 	 * Set instance variables to reflect playfield state. Initialization routine.
 	 *
 	 * @param update Message from server, contains data such as ball position,
@@ -159,12 +45,14 @@ public class BallPosition {
 	private void setStartParameters(Update update, double xVel, double yVel) {
 		this.simX = update.getBallX();       // simulated ball start X position
 		this.simY = update.getBallY();       // simulated ball start Y position
-		this.angle = Math.atan2(yVel, xVel); // figure out direction
+//		this.angle = Math.atan2(yVel, xVel); // figure out direction
+		this.incoming = (xVel < 0.0d);
 		this.iterations = 0;
-		top = update.getBallRadius();
-		left = update.getPaddleWidth();
-		right = update.getFieldMaxWidth() - 2 * update.getPaddleWidth();
-		ySpace = update.getFieldMaxHeight() - update.getBallRadius() * 2;
+		this.top = update.getBallRadius();
+		this.left = update.getPaddleWidth();
+//		right = update.getFieldMaxWidth() - 2 * update.getPaddleWidth();
+		this.right = update.getFieldMaxWidth() - update.getPaddleWidth();
+		this.ySpace = update.getFieldMaxHeight() - update.getBallRadius() * 2;
 	}
 
 	public double nextMySide(Update update, double xVel, double yVel) {
@@ -212,11 +100,12 @@ public class BallPosition {
 	 */
 	public double targetFarthest(Update update, double xVel, double yVel) {
 		HashMap<Double, Double> offset = new HashMap<>();
-		double target;
+//		double target;
 		double tempBallXPosition = update.getBallX();
 		double tempBallYPosition = update.getBallY();
 		double spreadMin, spreadMax;
-		update.getBall().getPosition().setX(update.getPaddleWidth() * 2);    // Simulate ball bouncing
+//		update.getBall().getPosition().setX(update.getPaddleWidth() * 2);    // Simulate ball bouncing
+		update.getBall().getPosition().setX(left);                           // Simulate position of ball bouncing
 		update.getBall().getPosition().setY(nextMySide(update, xVel, yVel)); // back from our paddle
 
 		double slope = (yVel / (-1.0 * xVel));  // called only when ball is incoming
@@ -264,10 +153,10 @@ public class BallPosition {
 	 */
 	private void nextMyY(Update update, double xVel, double yVel) {
 		double dy;                     // slope factor
-		int bounces = 0;               // bounces from top and bottom walls
+		int bounces;                   // bounces from top and bottom walls
 		double tempBallX, tempBallY;   // save and restore original values of ball position in 'update' object
 
-		if (incoming(angle)) {
+		if (incoming) {
 			dy = (yVel / (-1.0 * xVel));
 			preSimY = dy * (update.getBallX() - left) + update.getBallY();
 			handleBounce();
@@ -275,19 +164,19 @@ public class BallPosition {
 			simY = preSimY;
 		} else {
 			dy = (yVel / xVel);
-			preSimY = dy * (right - update.getBallX()) + update.getBallY();
+			preSimY = dy * (right - update.getBallX()) + update.getBallY(); // Y-position when ball hits right side paddle
 			log.debug("nextMyY outgoing1: dy: {}, preSimY = {}, ballX: {}, ballY: {}.", new Object[]{dy, preSimY, update.getBallX(), update.getBallY()});
-			handleBounce();
-			tempBallX = update.getBallX();
-			tempBallY = update.getBallY();
+			bounces = handleBounce();
+			tempBallX = update.getBallX();                                  // Store current
+			tempBallY = update.getBallY();                                  // ball position
 			update.getBall().getPosition().setX(right);
-			update.getBall().getPosition().setY(preSimY);
+			update.getBall().getPosition().setY(preSimY);                   // Make ball look like it hits enemy side paddle
 			log.debug("nextMyY outgoing2: dy: {}, preSimY = {}, ballX: {}, ballY: {}.", new Object[]{dy, preSimY, update.getBallX(), update.getBallY()});
 			nextMySide(update, (-1.0 * xVel), ((bounces % 2 == 1) ? (-1.0 * yVel) : yVel));
-			update.getBall().getPosition().setX(tempBallX);
-			update.getBall().getPosition().setY(tempBallY);
+			update.getBall().getPosition().setX(tempBallX);                 // Restore ball
+			update.getBall().getPosition().setY(tempBallY);                 // position
 			log.debug("nextMyY outgoing3: dy: {}, preSimY = {}, ballX: {}, ballY: {}.", new Object[]{dy, preSimY, update.getBallX(), update.getBallY()});
-			simY = preSimY;
+//			simY = preSimY;
 		}
 
 		//	log.info("nextY predict: dy: {}, simY = {}, ballX: {}, ballY: {}.", new Object[]{dy, simY, update.getBallX(), update.getBallY()});
@@ -310,7 +199,7 @@ public class BallPosition {
 		int bounces = 0;               // bounces from top and bottom walls
 		double tempBallX, tempBallY;   // save and restore original values of ball position in 'update' object
 
-		if (!incoming(angle)) {
+		if (!incoming) {
 			dy = (yVel / xVel);
 			preSimY = dy * (update.getBallX() - right) + update.getBallY();
 			handleBounce();
@@ -386,4 +275,116 @@ public class BallPosition {
 		}
 		return bounces;
 	}
+	
+	/**
+	 * Estimate ball Y-position when it comes to us next time.
+	 *
+	 * @param update Message from server, contains data such as ball position,
+	 * field size, paddle positions
+	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
+	 * X-direction (per time unit)
+	 * @param yVel Ball direction vector Y-part i.e. it's speed in pixels in
+	 * Y-direction (per time unit)
+	 * @return Estimated Y-position where ball will land when it bounces from
+	 * opponent paddle
+	 */
+	public double naiveNextMySide(Update update, double xVel, double yVel) {
+
+		setStartParameters(update, xVel, yVel); // figure out position and direction
+
+		if (incoming) {
+			simulateInbound(update, xVel, yVel);
+		} else {
+			simulateOutbound(update, xVel, yVel);
+			xVel *= -1.0d;                       // Bounce from opponent paddle
+			simulateInbound(update, xVel, yVel);
+		}
+		return simY;
+	}
+
+	/**
+	 * Estimate ball Y-position on enemy side when it lands there next time.
+	 *
+	 * @param update Message from server, contains data such as ball position,
+	 * field size, paddle positions
+	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
+	 * X-direction (per time unit)
+	 * @param yVel Ball direction vector Y-part i.e. it's speed in pixels in
+	 * Y-direction (per time unit)
+	 * @return Estimated Y-position where ball will land when it bounces from
+	 * opponent paddle
+	 */
+	public double naiveNextEnemySide(Update update, double xVel, double yVel) {
+
+		setStartParameters(update, xVel, yVel); // figure out position and direction
+		if (incoming) {
+			simulateInbound(update, xVel, yVel);
+			xVel *= -1.0d;                       // Bounce from our paddle
+			simulateOutbound(update, xVel, yVel);
+		} else {
+			simulateOutbound(update, xVel, yVel);
+		}
+		return simY;
+	}
+
+	/**
+	 *
+	 * Simulate ball traveling outwards from out paddle. Changes class' internal
+	 * state to reflect ball position on enemy paddle line as the ball traverses
+	 * towards it in straight line.
+	 *
+	 * @param update Message from server, contains data such as ball position,
+	 * field size, paddle positions
+	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
+	 * X-direction (per time unit)
+	 * @param yVel Ball direction vector Y-part i.e. it's speed in pixels in
+	 * Y-direction (per time unit)
+	 */
+	private void simulateOutbound(Update update, double xVel, double yVel) {
+
+		// Until we hit end of field, add yVel to Y-value and xVel to X-value
+		while (simX < update.getFieldMaxWidth() && iterations < MAX_ITER) {
+			simX += xVel;      // Move simulated ball
+			simY += yVel;      // in both X- and Y-directions
+			if (simY < update.getBallRadius()) {    // If simulated ball hits bottom, 
+				yVel *= -1.0d;   // switch y-direction and 
+				simY *= -1.0d;   // make negative position positive (bring ball back to field)
+			} else if (simY > update.getFieldMaxHeight() - update.getBallRadius()) {  // If it hits roof,
+				yVel *= -1.0d;                                                         // calculate distance by which roof was exceeded and bring back that amount
+				simY = update.getFieldMaxHeight() - (simY - update.getFieldMaxHeight());
+			}
+			iterations++;
+		}
+	}
+
+	/**
+	 *
+	 * Simulate ball traveling towards our paddle. Changes class' internal state
+	 * to reflect ball position on our paddle line as the ball traverses towards
+	 * us in straight line.
+	 *
+	 * @param update Message from server, contains data such as ball position,
+	 * field size, paddle positions
+	 * @param xVel Ball direction vector X-part i.e. it's speed in pixels in
+	 * X-direction (per time unit)
+	 * @param yVel Ball direction vector Y-part i.e. it's speed in pixels in
+	 * Y-direction (per time unit)
+	 */
+	private void simulateInbound(Update update, double xVel, double yVel) {
+
+		// For as long as the ball has not reached our end of field
+		while (simX > update.getBallRadius() && iterations < MAX_ITER) {
+			simX += xVel;
+			simY += yVel;
+			if (simY < 0) {   // SEE COMMENTS ON simulateOutbound()
+				yVel *= -1.0d;
+				simY *= -1.0d;
+			} else if (simY > update.getFieldMaxHeight() - update.getBallRadius()) {
+				yVel *= -1.0d;
+				simY = update.getFieldMaxHeight() - (simY - update.getFieldMaxHeight());
+			}
+			iterations++;
+		}
+	}
+
 }
