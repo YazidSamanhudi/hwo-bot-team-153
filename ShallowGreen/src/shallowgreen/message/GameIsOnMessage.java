@@ -8,6 +8,13 @@ public class GameIsOnMessage extends Message {
 	@JsonProperty("data")
 	private Update update;
 
+	public GameIsOnMessage() {
+	}
+
+	public GameIsOnMessage(Update update) {
+		this.update=update;
+	}
+
 	public Update getUpdate() {
 		return update;
 	}
