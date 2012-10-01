@@ -13,6 +13,9 @@ import shallowgreen.message.GameStartedMessage;
 import shallowgreen.message.JoinMessage;
 import shallowgreen.message.JoinedMessage;
 import shallowgreen.message.Message;
+import shallowgreen.message.MissileLaunchedMessage;
+import shallowgreen.message.MissileReadyMessage;
+import shallowgreen.model.MissileLaunch;
 import shallowgreen.model.Update;
 import shallowgreen.predictor.RTT;
 
@@ -24,8 +27,6 @@ public abstract class Game {
 	public void setConnection(Connection connection) {
 		this.connection=connection;
 	}
-
-//	public abstract void handleMessage(Message message);
 
 	public void handleMessage(Message message) {
 		switch(message.getMessageType()) {
@@ -50,6 +51,14 @@ public abstract class Game {
 			case JOINED:
 				joined((JoinedMessage)message);
 				break;
+			case MISSILE_READY:
+				missileReady(((MissileReadyMessage)message).getTime());
+				break;
+			case MISSILE_LAUNCHED:
+				missileLaunched(((MissileLaunchedMessage)message).getMissileLaunch());
+				break;
+			case LAUNCH_MISSILE:
+			case REQUEST_DUEL:
 			case UNKNOWN:
 			default:
 				unknown(message);
@@ -71,6 +80,14 @@ public abstract class Game {
 
 	public void joined(JoinedMessage message) {
 		log.info("joined game, url: {}",message.getUrl());
+	}
+
+	public void missileReady(long time) {
+		log.info("missile ready at: {}",time);
+	}
+
+	public void missileLaunched(MissileLaunch missileLaunch) {
+		log.info("missile launched: {}",missileLaunch);
 	}
 
 	public void unknown(Message message) {
