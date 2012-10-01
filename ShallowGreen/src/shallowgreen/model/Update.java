@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Update {
 
-	private long receiveTimeMillis = (System.nanoTime() / 1000000);
+	private long receiveTimeMillis=System.currentTimeMillis();
 	private long time;
 	private Player left;
 	private Player right;
@@ -12,6 +12,21 @@ public class Update {
 	private double nrOfMissiles;
 	@JsonProperty("conf")
 	private Field field;
+
+	private boolean synthetic;
+
+	public Update() {
+	}
+
+	public Update(long time, Player left, Player right, Ball ball, double nrOfMissiles, Field field, boolean synthetic) {
+		this.time=time;
+		this.left=left;
+		this.right=right;
+		this.ball=ball;
+		this.nrOfMissiles=nrOfMissiles;
+		this.field=field;
+		this.synthetic=true;
+	}
 
 	public long getReceiveTimeMillis() {
 		return receiveTimeMillis;
@@ -39,6 +54,10 @@ public class Update {
 
 	public Field getField() {
 		return field;
+	}
+
+	public boolean isSynthetic() {
+		return synthetic;
 	}
 
 	/** shortcut/convenience to getLeft().getY() */

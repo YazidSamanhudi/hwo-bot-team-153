@@ -7,6 +7,13 @@ public class Ball {
 	@JsonProperty("pos")
 	private Position position;
 
+	public Ball() {
+	}
+
+	public Ball(Position position) {
+		this.position=position;
+	}
+
 	public Position getPosition() {
 		return position;
 	}
